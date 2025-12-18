@@ -1,5 +1,3 @@
-"use client";
-
 import { Transaction } from "../../domain/entities/Transaction";
 
 type Props = {
