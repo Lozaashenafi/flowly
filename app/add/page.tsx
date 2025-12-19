@@ -1,5 +1,5 @@
-import AddTransactionPage from "../../src/presentation/pages/AddTransactionPage";
-import React from "react";
+import AddTransaction from "../../src/presentation/pages/AddTransaction";
+
 export default function Page() {
-  return <AddTransactionPage />;
+  return <AddTransaction />;
 }

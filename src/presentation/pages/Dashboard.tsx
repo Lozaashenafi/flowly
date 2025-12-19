@@ -1,183 +1,95 @@
 "use client";
+import { TrendingUp, TrendingDown, CreditCard, Wallet } from "lucide-react";
+import Header from "../components/layout/Header";
+import { useRouter } from "next/navigation";
 
-import React from "react";
-import {
-  Plus,
-  ArrowUpRight,
-  ArrowDownLeft,
-  LayoutGrid,
-  CreditCard,
-} from "lucide-react";
-import TransactionList from "../components/TransactionList";
-import { Transaction } from "../../domain/entities/Transaction";
+const Dashboard = () => {
+  const router = useRouter();
 
-const mockTransactions: Transaction[] = [
-  {
-    id: "1",
-    type: "expense",
-    amount: 120,
-    category: "Food",
-    date: new Date().toISOString(),
-    createdAt: Date.now(),
-  },
-  {
-    id: "2",
-    type: "income",
-    amount: 1500,
-    category: "Salary",
-    date: new Date().toISOString(),
-    createdAt: Date.now(),
-  },
-  {
-    id: "3",
-    type: "expense",
-    amount: 60,
-    category: "Transport",
-    date: new Date().toISOString(),
-    createdAt: Date.now(),
-  },
-];
-
-export default function Dashboard() {
-  // Logic for calculations (In Clean Architecture, this eventually moves to a Use Case)
-  const income = mockTransactions
-    .filter((t) => t.type === "income")
-    .reduce((acc, t) => acc + t.amount, 0);
-  const expenses = mockTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((acc, t) => acc + t.amount, 0);
-  const balance = income - expenses;
-
+  const handleAddTransaction = () => {
+    router.push("/add");
+  };
   return (
-    <div className="min-h-screen bg-[#F8F7F4] text-slate-900 pb-24">
-      {/* Header */}
-      <header className="px-6 pt-10 pb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800">
-          Flowly
-        </h1>
-        <p className="text-slate-500 text-sm font-medium">Monthly Summary</p>
-      </header>
+    <div className="bg-gray-50 min-h-screen mb-32">
+      <Header />
+      <main className="px-4 space-y-8">
+        {/* Main Balance Card */}
+        <section className="relative overflow-hidden rounded-3xl bg-[#477A71] p-6 text-white shadow-lg">
+          <div className="flex items-center gap-2 mb-2 opacity-90">
+            <Wallet size={18} className="text-[#F0BB40]" />
+            <span className="text-sm font-medium">Current Balance</span>
+          </div>
+          <h2 className="text-5xl font-bold mb-8">$0.00</h2>
 
-      <main className="px-4 space-y-6">
-        {/* 1. Monthly Summary (Top Cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <SummaryCard label="Income" amount={income} type="income" />
-          <SummaryCard label="Expenses" amount={expenses} type="expense" />
-          <SummaryCard label="Balance" amount={balance} type="balance" />
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1 opacity-90">
+                <TrendingUp size={14} className="text-[#F0BB40]" />
+                <span className="text-xs uppercase tracking-wider">Income</span>
+              </div>
+              <p className="text-xl font-semibold">$0.00</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1 opacity-90">
+                <TrendingDown size={14} className="text-[#F0BB40]" />
+                <span className="text-xs uppercase tracking-wider">
+                  Expenses
+                </span>
+              </div>
+              <p className="text-xl font-semibold">$0.00</p>
+            </div>
+          </div>
+          {/* Decorative Circle Bubbles */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#F0BB40]/20 rounded-full blur-3xl"></div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 2. Expense Breakdown (Simple progress bars) */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-lg">Spending patterns</h2>
-              <LayoutGrid className="w-5 h-5 text-slate-300" />
-            </div>
-            <div className="space-y-4">
-              <CategoryProgress
-                name="Food"
-                amount={120}
-                total={expenses}
-                color="bg-orange-400"
-              />
-              <CategoryProgress
-                name="Transport"
-                amount={60}
-                total={expenses}
-                color="bg-blue-400"
-              />
-            </div>
-          </section>
+        {/* Quick Add Section */}
+        <section>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 px-2">
+            Quick Add
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            <button className="flex flex-col items-center justify-center gap-2 py-6 rounded-2xl bg-[#477A71] text-white shadow-sm hover:bg-[#3a615a] transition-colors">
+              <TrendingUp size={20} className="text-[#F0BB40]" />
+              <span className="text-xs font-semibold">Income</span>
+            </button>
+            <button className="flex flex-col items-center justify-center gap-2 py-6 rounded-2xl bg-[#F0BB40] text-white shadow-sm hover:bg-[#efad13] transition-colors">
+              <TrendingDown size={20} className="text-[#3a615a]" />
+              <span className="text-xs font-semibold">Expense</span>
+            </button>
+            <button className="flex flex-col items-center justify-center gap-2 py-6 rounded-2xl bg-[#477A71] text-white shadow-sm hover:bg-[#3a615a] transition-colors">
+              <CreditCard size={20} className="text-[#F0BB40]" />
+              <span className="text-xs font-semibold">Debt</span>
+            </button>
+          </div>
+        </section>
 
-          {/* 3. Debt Snapshot */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-lg">Debts</h2>
-              <CreditCard className="w-5 h-5 text-slate-300" />
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                <span className="text-sm font-medium">Personal Loan</span>
-                <span className="text-sm font-bold text-rose-600">$1,200</span>
+        {/* Recent Transactions Section */}
+        <section>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 px-2">
+            Recent Transactions
+          </h3>
+          <div className="bg-white rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center shadow-sm border border-gray-200">
+            <div className="w-16 h-16 bg-[#F0BB40]/10 rounded-full flex items-center justify-center mb-4">
+              <div className="rotate-12 bg-[#477A71] p-1 rounded text-white">
+                💸
               </div>
             </div>
-          </section>
-        </div>
+            <h4 className="font-bold text-gray-800 mb-1">
+              No transactions yet
+            </h4>
 
-        {/* 4. Recent Transactions */}
-        <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 className="font-semibold text-lg mb-4">Recent Activity</h2>
-          <TransactionList transactions={mockTransactions} />
+            <button
+              onClick={handleAddTransaction}
+              className="bg-[#477A71] text-white px-8 py-3 rounded-2xl font-semibold text-sm shadow-md hover:bg-[#3a615a] transition-colors"
+            >
+              Add Transaction
+            </button>
+          </div>
         </section>
       </main>
-
-      {/* 5. Quick Actions Button */}
-      <button
-        onClick={() => {
-          window.location.href = "/add";
-        }}
-        className="fixed bottom-8 right-6 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
-        aria-label="Add New"
-      >
-        <Plus size={28} />
-      </button>
     </div>
   );
-}
+};
 
-// --- Sub-components for Cleanliness ---
-
-function SummaryCard({
-  label,
-  amount,
-  type,
-}: {
-  label: string;
-  amount: number;
-  type: "income" | "expense" | "balance";
-}) {
-  const colorMap = {
-    income: "text-emerald-600",
-    expense: "text-rose-500",
-    balance: "text-slate-900",
-  };
-
-  return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
-        {label}
-      </p>
-      <p className={`text-2xl font-bold ${colorMap[type]}`}>
-        ${amount.toLocaleString()}
-      </p>
-    </div>
-  );
-}
-
-function CategoryProgress({
-  name,
-  amount,
-  total,
-  color,
-}: {
-  name: string;
-  amount: number;
-  total: number;
-  color: string;
-}) {
-  const percentage = total > 0 ? (amount / total) * 100 : 0;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between text-sm font-medium">
-        <span className="text-slate-600">{name}</span>
-        <span>${amount}</span>
-      </div>
-      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-        <div
-          className={`${color} h-full rounded-full`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  );
-}
+export default Dashboard;

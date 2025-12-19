@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { FlowlyProvider } from "../src/presentation/context/FlowlyContext";
+import { BottomNav } from "../src/presentation/components/layout/BottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,23 +19,16 @@ export const metadata = {
   themeColor: "#111827",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        {/* PWA */}
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#111827" />
-      </head>
-
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 text-gray-900`}
-      >
-        {children}
+      <body>
+        <FlowlyProvider>
+          <div>
+            {children}
+            <BottomNav />
+          </div>
+        </FlowlyProvider>
       </body>
     </html>
   );
