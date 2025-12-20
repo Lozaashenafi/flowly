@@ -67,11 +67,10 @@ const AddTransaction = () => {
   return (
     <div className="min-h-screen bg-[#FDFCFB] font-sans pb-32">
       {/* Top Header */}
-      <header className="px-6 py-6 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-[#477a71]">Add Transaction</h1>
-        <button className="text-[#477a71]">
-          <ChevronLeft size={24} />
-        </button>
+      <header className="px-6 pt-8 pb-4">
+        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          Add Transaction
+        </h1>
       </header>
 
       <main className="px-4 space-y-6">
@@ -189,31 +188,6 @@ const AddTransaction = () => {
           Add {type}
         </button>
       </main>
-
-      {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-4 flex justify-between items-center z-50">
-        <div className="flex flex-col items-center gap-1 text-slate-400">
-          <Home size={22} />
-          <span className="text-[10px] font-bold">Home</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-slate-400">
-          <BarChart2 size={22} />
-          <span className="text-[10px] font-bold">Analytics</span>
-        </div>
-        <div className="relative -top-8">
-          <button className="bg-[#477a71] text-white p-4 rounded-full shadow-xl border-4 border-white">
-            <Plus size={28} strokeWidth={3} />
-          </button>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-slate-400">
-          <Layers size={22} />
-          <span className="text-[10px] font-bold">Categories</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-slate-400">
-          <Settings size={22} />
-          <span className="text-[10px] font-bold">Settings</span>
-        </div>
-      </nav>
     </div>
   );
 };
