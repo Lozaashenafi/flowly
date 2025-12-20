@@ -1,13 +1,11 @@
-import { TransactionType } from "../value-objects/TransactionType";
+// src/domain/entities/Category.ts
+import { TransactionTypeVO } from "../value-objects/TransactionType";
 
 export interface Category {
   id: string;
   name: string;
-  /**
-   * Which transaction type this category applies to.
-   * 'income' | 'expense' | 'both'
-   */
-  type: TransactionType | "both";
-  color?: string;
+  icon: string;
+  type: TransactionTypeVO;
+  color: string;
   createdAt: number;
 }

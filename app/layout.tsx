@@ -16,7 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Flowly",
   description: "Offline-first personal finance tracker",
-  themeColor: "#111827",
 };
 
 export default function RootLayout({

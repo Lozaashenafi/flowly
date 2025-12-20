@@ -19,4 +19,9 @@ export class IndexedDbTransactionRepository {
     if (!db) return;
     await db.delete("transactions", id);
   }
+  async clear() {
+    const db = await getDb();
+    if (!db) return;
+    await db.clear("transactions");
+  }
 }
