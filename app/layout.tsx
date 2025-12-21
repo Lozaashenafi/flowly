@@ -25,9 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans bg-gray-50`}
-      >
+      <body className={`font-sans bg-gray-50`}>
         <FlowlyProvider>
           <div className="flex flex-col min-h-screen">
             {/* Main content area - grows to fill space but respects bottom nav */}

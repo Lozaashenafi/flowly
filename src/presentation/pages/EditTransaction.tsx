@@ -1,28 +1,48 @@
-// src/presentation/pages/AddTransaction.tsx
-// Updated with dynamic categories filtered by type
+// src/presentation/pages/EditTransaction.tsx
+// Updated with dynamic categories and preserved createdAt
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import * as Icons from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { Transaction } from "../../domain/entities/Transaction";
 import { TransactionType } from "../../domain/value-objects/TransactionType";
 
-const AddTransactionPage = () => {
-  const { addTransaction, categories } = useFlowlyContext();
+const EditTransactionPage = () => {
+  const { getTransaction, updateTransaction, categories } = useFlowlyContext();
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString());
   const [note, setNote] = useState("");
+  const [loadedTx, setLoadedTx] = useState<Transaction | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter categories based on selected type
-  const filteredCategories = categories.filter(
-    (cat) => cat.type.toString() === type
-  );
-  console.log("Filtered Categories:", filteredCategories);
+  useEffect(() => {
+    const loadTransaction = async () => {
+      if (!id) return;
+      const tx = await getTransaction(id);
+      if (tx) {
+        setLoadedTx(tx);
+        setType(tx.type);
+        setAmount(tx.amount.toString());
+        setCategory(tx.category);
+        setDate(tx.date);
+        setNote(tx.note || "");
+      } else {
+        alert("Transaction not found");
+        router.back();
+      }
+      setIsLoading(false);
+    };
+    loadTransaction();
+  }, [id, getTransaction, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
@@ -31,31 +51,39 @@ const AddTransactionPage = () => {
       return;
     }
 
-    const newTx: Transaction = {
-      id: "", // Generated in repo
+    if (!loadedTx) {
+      alert("No transaction loaded");
+      return;
+    }
+
+    const updatedTx: Transaction = {
+      ...loadedTx,
       type,
       amount: parsedAmount,
       category,
       note: note || undefined,
       date,
-      createdAt: 0, // Set in repo
     };
 
     try {
-      await addTransaction(newTx);
-      router.push("/transactions"); // Or dashboard
+      await updateTransaction(updatedTx);
+      router.push("/transactions"); // Or back to list
     } catch (error) {
-      console.error("Error adding transaction:", error);
-      alert("Failed to add transaction");
+      console.error("Error updating transaction:", error);
+      alert("Failed to update transaction");
     }
   };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] font-sans pb-32">
       {/* Top Header */}
       <header className="px-6 pt-8 pb-4">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          Add Transaction
+          Edit Transaction
         </h1>
       </header>
 
@@ -119,7 +147,7 @@ const AddTransactionPage = () => {
             Category
           </label>
           <div className="grid grid-cols-4 gap-3">
-            {filteredCategories.map((cat) => {
+            {categories.map((cat) => {
               const IconComponent = ((Icons as any)[cat.icon] ??
                 Icons.MoreHorizontal) as React.ComponentType<any>;
               return (
@@ -154,7 +182,7 @@ const AddTransactionPage = () => {
           <div className="relative">
             <input
               type="datetime-local"
-              value={date.slice(0, 16)} // For datetime-local format
+              value={date.slice(0, 16)}
               onChange={(e) => setDate(new Date(e.target.value).toISOString())}
               className="w-full bg-white border border-slate-100 rounded-2xl py-4 px-4 text-sm font-medium text-slate-700 focus:outline-none shadow-sm"
             />
@@ -190,11 +218,11 @@ const AddTransactionPage = () => {
               : "bg-slate-800"
           }`}
         >
-          Add {type.charAt(0).toUpperCase() + type.slice(1)}
+          Update {type.charAt(0).toUpperCase() + type.slice(1)}
         </button>
       </main>
     </div>
   );
 };
 
-export default AddTransactionPage;
+export default EditTransactionPage;

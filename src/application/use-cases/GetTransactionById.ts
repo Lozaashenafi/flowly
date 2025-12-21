@@ -1,10 +1,10 @@
 import { Transaction } from "../../domain/entities/Transaction";
 import { TransactionRepository } from "../../domain/repositories/TransactionRepository";
 
-export class AddTransaction {
+export class GetTransactionById {
   constructor(private repo: TransactionRepository) {}
 
-  async execute(tx: Transaction) {
-    await this.repo.add(tx);
+  async execute(id: string): Promise<Transaction | null> {
+    return this.repo.getById(id);
   }
 }
