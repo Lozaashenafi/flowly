@@ -3,6 +3,7 @@ import "./globals.css";
 import { FlowlyProvider } from "../src/presentation/context/FlowlyContext";
 import { BottomNav } from "../src/presentation/components/layout/BottomNav";
 import { PWARegistrar } from "../src/config/PWARegistrar";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,14 +29,30 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans bg-gray-50`}>
+      <head>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-7TVTE4BS7T"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-7TVTE4BS7T', {
+          page_path: window.location.pathname,
+        });
+      `}
+        </Script>
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} font-sans bg-gray-50`}
+      >
         <FlowlyProvider>
           <PWARegistrar />
           <div className="flex flex-col min-h-screen">
-            {/* Main content area - grows to fill space but respects bottom nav */}
             <main className="flex-1 pb-20 md:pb-0">{children}</main>
-
-            {/* Fixed bottom navigation */}
             <BottomNav />
           </div>
         </FlowlyProvider>
