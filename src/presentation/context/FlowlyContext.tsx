@@ -21,7 +21,7 @@ import { GetCategoriesUseCase } from "../../application/use-cases/GetCategoriesU
 import { AddCategoryUseCase } from "../../application/use-cases/AddCategoryUseCase";
 import { Transaction } from "../../domain/entities/Transaction";
 import { Category } from "../../domain/entities/Category";
-import { defaultCategories } from "../../data/defaultCategories"; // Import the defaults
+import { defaultCategories } from "../../data/defaultCategories";
 
 interface FlowlyContextType {
   transactions: Transaction[];
