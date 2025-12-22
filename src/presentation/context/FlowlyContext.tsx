@@ -1,5 +1,3 @@
-// src/presentation/context/FlowlyContext.tsx
-// Updated seeding with defaultCategories, added type to Category
 "use client";
 
 import React, {
