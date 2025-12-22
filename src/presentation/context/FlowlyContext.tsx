@@ -133,6 +133,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
     },
     [categoryRepo, refreshCategories]
   );
+  // Inside src/presentation/context/FlowlyContext.tsx
 
   const getMonthlyStats = useCallback(
     (year: number, month: number) => {
@@ -141,17 +142,38 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
         return d.getFullYear() === year && d.getMonth() === month;
       });
 
-      const income = filtered
-        .filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
-      const expenses = filtered
-        .filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0);
+      const getTypeValue = (t: Transaction) =>
+        typeof t.type === "string" ? t.type : (t.type as any).value;
+
+      let income = 0;
+      let expenses = 0;
+      let balance = 0;
+
+      filtered.forEach((t) => {
+        const type = getTypeValue(t);
+        const amt = t.amount;
+
+        if (type === "income") {
+          income += amt;
+          balance += amt;
+        } else if (type === "expense") {
+          expenses += amt;
+          balance -= amt;
+        } else if (type === "debt") {
+          // IF I OWE: I received cash (Balance UP)
+          // IF THEY OWE ME: Cash left my pocket (Balance DOWN)
+          if ((t as any).debtType === "owed") {
+            balance += amt;
+          } else {
+            balance -= amt;
+          }
+        }
+      });
 
       return {
         totalIncome: income,
         totalExpenses: expenses,
-        balance: income - expenses,
+        balance: balance,
       };
     },
     [transactions]

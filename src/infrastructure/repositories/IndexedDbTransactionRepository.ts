@@ -4,9 +4,6 @@ import { TransactionRepository } from "../../domain/repositories/TransactionRepo
 import { v4 as uuidv4 } from "uuid"; // npm i uuid @types/uuid
 
 export class IndexedDbTransactionRepository implements TransactionRepository {
-  remove(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
   private storeName = "transactions";
 
   async getAll(): Promise<Transaction[]> {
@@ -18,7 +15,6 @@ export class IndexedDbTransactionRepository implements TransactionRepository {
     const db = await getDb();
     return db.get(this.storeName, id);
   }
-
   async add(transaction: Transaction): Promise<void> {
     const db = await getDb();
     const tx = db.transaction(this.storeName, "readwrite");
@@ -47,11 +43,10 @@ export class IndexedDbTransactionRepository implements TransactionRepository {
     await tx.done;
   }
 
-  async delete(id: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     const db = await getDb();
     await db.delete(this.storeName, id);
   }
-
   async clear(): Promise<void> {
     const db = await getDb();
     await db.clear(this.storeName);

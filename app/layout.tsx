@@ -12,10 +12,10 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 export const metadata = {
   title: "Flowly",
   description: "Offline-first personal finance tracker",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
