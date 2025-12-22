@@ -1,11 +1,10 @@
 {
-  "name": "Flowly Finance",
+  "name": "Flowly",
   "short_name": "Flowly",
-  "description": "Offline-first personal finance tracker app.",
+  "description": "Finance management app",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#477A71",
   "icons": [
     {
       "src": "/icon-192.png",

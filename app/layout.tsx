@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FlowlyProvider } from "../src/presentation/context/FlowlyContext";
 import { BottomNav } from "../src/presentation/components/layout/BottomNav";
+import { PWARegistrar } from "../src/config/PWARegistrar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,10 +13,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
 export const metadata = {
   title: "Flowly",
   description: "Offline-first personal finance tracker",
   manifest: "/manifest.json",
+  themeColor: "#477A71",
 };
 
 export default function RootLayout({
@@ -27,6 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans bg-gray-50`}>
         <FlowlyProvider>
+          <PWARegistrar />
           <div className="flex flex-col min-h-screen">
             {/* Main content area - grows to fill space but respects bottom nav */}
             <main className="flex-1 pb-20 md:pb-0">{children}</main>
