@@ -42,7 +42,6 @@ export class IndexedDbTransactionRepository implements TransactionRepository {
     await store.put(transaction);
     await tx.done;
   }
-
   async remove(id: string): Promise<void> {
     const db = await getDb();
     await db.delete(this.storeName, id);

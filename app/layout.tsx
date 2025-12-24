@@ -19,7 +19,6 @@ export const metadata = {
   title: "Flowly",
   description: "Offline-first personal finance tracker",
   manifest: "/manifest.json",
-  themeColor: "#477A71",
 };
 
 export default function RootLayout({

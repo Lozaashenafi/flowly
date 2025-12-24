@@ -39,10 +39,10 @@ const Dashboard = () => {
             </span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8">
-            $
             {stats.balance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
-            })}
+            })}{" "}
+            ETB
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -54,7 +54,7 @@ const Dashboard = () => {
                 </span>
               </div>
               <p className="text-lg sm:text-xl font-semibold">
-                ${stats.totalIncome.toLocaleString()}
+                {stats.totalIncome.toLocaleString()} ETB
               </p>
             </div>
             <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
@@ -65,7 +65,7 @@ const Dashboard = () => {
                 </span>
               </div>
               <p className="text-lg sm:text-xl font-semibold">
-                ${stats.totalExpenses.toLocaleString()}
+                {stats.totalExpenses.toLocaleString()} ETB
               </p>
             </div>
           </div>
@@ -124,7 +124,7 @@ const Dashboard = () => {
             <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm border border-gray-200 w-full">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#F0BB40]/10 rounded-full flex items-center justify-center mb-5">
                 <div className="rotate-12 bg-[#477A71] p-2 rounded text-white text-2xl">
-                  💸
+                  <Wallet size={28} />
                 </div>
               </div>
               <h4 className="font-bold text-gray-800 text-lg mb-2">
@@ -207,7 +207,7 @@ const Dashboard = () => {
                       (txType === "debt" && (tx as any).debtType === "owesMe")
                         ? "+"
                         : "-"}
-                      ${tx.amount.toLocaleString()}
+                      {tx.amount.toLocaleString()} ETB
                     </p>
                   </div>
                 );

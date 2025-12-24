@@ -14,7 +14,7 @@ const Analytics = () => {
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
-  // 3. Dynamic Calculations
+  // 3. Dynamic Calculations (Untouched logic)
   const stats = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -35,7 +35,6 @@ const Analytics = () => {
         if (type === "income") acc.income += amount;
         else if (type === "expense") acc.expense += amount;
         else if (type === "debt") {
-          // Splitting Debt logic
           if (t.debtType === "owed") acc.debtOwed += amount;
           else if (t.debtType === "owesMe") acc.debtOwesMe += amount;
         }
@@ -53,16 +52,16 @@ const Analytics = () => {
 
   if (isLoading)
     return (
-      <div className="p-10 text-center font-bold text-slate-400">
+      <div className="p-10 text-center font-bold text-[#477A71]">
         Loading Analytics...
       </div>
     );
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-slate-800 font-sans pb-32">
+    <div className="flex flex-col min-h-screen bg-gray-50 text-slate-800 font-sans pb-32">
       {/* Header */}
       <header className="px-6 pt-8 pb-4">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           Analytics
         </h1>
       </header>
@@ -71,18 +70,18 @@ const Analytics = () => {
       <div className="flex items-center justify-between px-6 py-4">
         <button
           onClick={prevMonth}
-          className="p-1 hover:bg-gray-100 rounded-full transition"
+          className="p-1 hover:bg-white rounded-full transition text-[#477A71]"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-400" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="text-lg font-semibold">
+        <span className="text-lg font-semibold text-gray-700">
           {format(currentDate, "MMMM yyyy")}
         </span>
         <button
           onClick={nextMonth}
-          className="p-1 hover:bg-gray-100 rounded-full transition"
+          className="p-1 hover:bg-white rounded-full transition text-[#477A71]"
         >
-          <ChevronRight className="w-5 h-5 text-gray-400" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
@@ -90,47 +89,49 @@ const Analytics = () => {
         {!stats.hasData ? (
           /* Empty State Section */
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
-            <div className="bg-gray-50 p-4 rounded-2xl">
-              <BarChart className="w-12 h-12 text-gray-300" />
+            <div className="bg-[#F0BB40]/10 p-4 rounded-2xl">
+              <BarChart className="w-12 h-12 text-[#477A71]" />
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-lg">No data for this month</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="font-bold text-lg text-gray-800">
+                No data for this month
+              </h3>
+              <p className="text-gray-500 text-sm">
                 Add transactions to see your analytics
               </p>
             </div>
           </div>
         ) : (
-          /* Stats Grid */
+          /* Stats Grid - Using your color theme and rounded-2xl */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-500">
             {/* Total Income Card */}
-            <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-sm">
-              <p className="text-emerald-600 font-medium text-sm mb-1">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-[#477A71] font-bold text-xs uppercase tracking-widest mb-1">
                 Total Income
               </p>
-              <p className="text-3xl font-bold text-emerald-500">
+              <p className="text-3xl font-bold text-[#477A71]">
                 ${stats.income.toLocaleString()}
               </p>
             </div>
 
             {/* Total Expenses Card */}
-            <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 shadow-sm">
-              <p className="text-rose-600 font-medium text-sm mb-1">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-[#F0BB40] font-bold text-xs uppercase tracking-widest mb-1">
                 Total Expenses
               </p>
-              <p className="text-3xl font-bold text-rose-500">
+              <p className="text-3xl font-bold text-[#F0BB40]">
                 ${stats.expense.toLocaleString()}
               </p>
             </div>
 
             {/* Balance Card */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-gray-500 font-medium text-sm mb-1">
+              <p className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-1">
                 Monthly Balance
               </p>
               <p
                 className={`text-3xl font-bold ${
-                  stats.balance >= 0 ? "text-emerald-500" : "text-rose-500"
+                  stats.balance >= 0 ? "text-[#477A71]" : "text-[#F0BB40]"
                 }`}
               >
                 {stats.balance >= 0 ? "+" : "-"}$
@@ -139,21 +140,21 @@ const Analytics = () => {
             </div>
 
             {/* Debt: I Owe (Liabilities) */}
-            <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 shadow-sm">
-              <p className="text-purple-600 font-medium text-sm mb-1">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-1">
                 Debt (I Owe)
               </p>
-              <p className="text-3xl font-bold text-purple-500">
+              <p className="text-3xl font-bold text-[#F0BB40]">
                 ${stats.debtOwed.toLocaleString()}
               </p>
             </div>
 
             {/* Debt: Owes Me (Assets) */}
-            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm">
-              <p className="text-blue-600 font-medium text-sm mb-1">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-[#477A71] font-bold text-xs uppercase tracking-widest mb-1">
                 Debt (Owes Me)
               </p>
-              <p className="text-3xl font-bold text-blue-500">
+              <p className="text-3xl font-bold text-[#477A71]">
                 ${stats.debtOwesMe.toLocaleString()}
               </p>
             </div>
