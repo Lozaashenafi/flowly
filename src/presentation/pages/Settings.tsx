@@ -11,8 +11,26 @@ import {
   Info,
 } from "lucide-react";
 import { useFlowlyContext } from "../context/FlowlyContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import logo from "../../../app/logo.png";
+
+// Animation Variants
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
+  },
+};
 
 export default function Settings() {
   const { transactions, categories, deleteTransaction } = useFlowlyContext();
@@ -53,7 +71,6 @@ export default function Settings() {
   // Logic for Clearing Data
   const handleClearData = async () => {
     try {
-      // Loop through and delete (Ideally your repo should have a clearAll method)
       await Promise.all(transactions.map((tx) => deleteTransaction(tx.id)));
       setModalType("success");
       setStatusMsg("All data has been wiped.");
@@ -64,18 +81,35 @@ export default function Settings() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-32">
-      <header className="px-6 pt-12 pb-6">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+      <motion.header
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="px-6 pt-12 pb-6"
+      >
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
           Settings
         </h1>
-      </header>
+      </motion.header>
 
-      <main className="px-4 space-y-6 max-w-5xl mx-auto">
+      <motion.main
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="px-4 space-y-6 max-w-5xl mx-auto"
+      >
         {/* App Info Card */}
-        <section className="bg-white rounded-[2.5rem] p-8 text-center border-2 border-slate-50 shadow-sm">
-          <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-3xl flex items-center justify-center shadow-lg shadow-[#477A71]/20">
+        <motion.section
+          variants={itemVariants}
+          className="bg-white rounded-[2.5rem] p-8 text-center border-2 border-slate-50 shadow-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 mx-auto mb-4 bg-white rounded-3xl flex items-center justify-center shadow-lg shadow-[#477A71]/20"
+          >
             <img src={logo.src} alt="Flowly Logo" className="w-24" />
-          </div>
+          </motion.div>
           <h1 className="text-2xl font-black text-slate-900 mb-1">Flowly</h1>
 
           <div className="flex items-center justify-center gap-10">
@@ -97,14 +131,17 @@ export default function Settings() {
               </p>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Action Buttons */}
-        <section className="space-y-4">
+        <motion.section variants={containerVariants} className="space-y-4">
           {/* Install App */}
-          <button
+          <motion.button
+            variants={itemVariants}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setModalType("install")}
-            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm active:scale-[0.98] transition-all"
+            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm transition-all"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
@@ -120,12 +157,15 @@ export default function Settings() {
             <div className="bg-[#477A71] text-white p-2 rounded-xl">
               <PlusIcon size={20} />
             </div>
-          </button>
+          </motion.button>
 
           {/* Export Data */}
-          <button
+          <motion.button
+            variants={itemVariants}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleExport}
-            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm active:scale-[0.98] transition-all"
+            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm transition-all"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
@@ -141,12 +181,15 @@ export default function Settings() {
             <div className="border-2 border-slate-100 text-slate-400 p-2 rounded-xl">
               <Download size={20} />
             </div>
-          </button>
+          </motion.button>
 
           {/* Clear All Data */}
-          <button
+          <motion.button
+            variants={itemVariants}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setModalType("clear")}
-            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm active:scale-[0.98] transition-all"
+            className="w-full bg-white rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 shadow-sm transition-all"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500">
@@ -159,19 +202,21 @@ export default function Settings() {
                 </p>
               </div>
             </div>
-          </button>
-        </section>
+          </motion.button>
+        </motion.section>
 
-        <section className="text-center py-10 opacity-40">
+        <motion.section
+          variants={itemVariants}
+          className="text-center py-10 opacity-40"
+        >
           <p className="text-xs text-gray-500 mt-2">
             All data is stored locally on your device.
           </p>
-
           <p className="text-[10px] font-medium text-slate-400 mt-2">
             Made with ❤️ in Ethiopa
           </p>
-        </section>
-      </main>
+        </motion.section>
+      </motion.main>
 
       {/* CUSTOM POPUPS */}
       <AnimatePresence>
@@ -182,13 +227,14 @@ export default function Settings() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setModalType(null)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100]"
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-10"
             />
             <motion.div
-              initial={{ y: 100, opacity: 0 }}
+              initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              className="fixed bottom-6 inset-x-4 bg-white rounded-[2.5rem] p-8 z-[101] shadow-2xl max-w-md mx-auto"
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-6 inset-x-4 bg-white rounded-[2.5rem] p-8 z-10 shadow-2xl max-w-md mx-auto"
             >
               {/* CLEAR DATA MODAL */}
               {modalType === "clear" && (

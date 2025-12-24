@@ -5,8 +5,21 @@ import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { Transaction } from "../../domain/entities/Transaction";
 import { TransactionType } from "../../domain/value-objects/TransactionType";
+// 1. Import motion
+import { motion, AnimatePresence } from "framer-motion";
 
 type DebtType = "owed" | "owesMe";
+
+// Animation Variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: "easeOut" },
+};
+
+const staggerContainer = {
+  animate: { transition: { staggerChildren: 0.1 } },
+};
 
 const AddTransactionPage = () => {
   const { addTransaction, categories } = useFlowlyContext();
@@ -59,20 +72,33 @@ const AddTransactionPage = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] font-sans pb-32">
-      {/* Header with Teal Accent */}
-      <header className="px-6 pt-12 pb-6 flex justify-between items-start">
+      {/* Header with Motion */}
+      <motion.header
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="px-6 pt-12 pb-6 flex justify-between items-start"
+      >
         <div>
-          <h1 className="text-2xl  font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Add <span className="text-[#477A71]">Transaction</span>
           </h1>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
             Flowly Financial Core
           </p>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="px-5 space-y-8">
-        <div className="bg-white p-1.5 rounded-2xl flex shadow-sm border border-slate-100">
+      <motion.main
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="px-5 space-y-8"
+      >
+        {/* Type Selector Tabs */}
+        <motion.div
+          variants={fadeInUp}
+          className="bg-white p-1.5 rounded-2xl flex shadow-sm border border-slate-100 relative"
+        >
           {(["income", "expense", "debt"] as const).map((t) => (
             <button
               key={t}
@@ -80,26 +106,34 @@ const AddTransactionPage = () => {
                 setType(t);
                 setCategory("");
               }}
-              className={`flex-1 py-3.5 rounded-[20px] text-[11px] font-black uppercase tracking-[0.15em] transition-all  ${
-                type === t
-                  ? t === "income"
-                    ? "bg-[#477A71] text-white"
-                    : t === "expense"
-                    ? "bg-[#F0BB40] text-[#ffffff]"
-                    : "bg-[#477A71] text-white"
-                  : "text-gray-400 hover:bg-gray-50"
+              className={`relative flex-1 py-3.5 rounded-[20px] text-[11px] font-black uppercase tracking-[0.15em] transition-all z-10 ${
+                type === t ? "text-white" : "text-gray-400 hover:bg-gray-50"
               }`}
             >
+              {/* Layout animation for the selection pill */}
+              {type === t && (
+                <motion.div
+                  layoutId="activeTab"
+                  className={`absolute inset-0 rounded-[20px] -z-10 ${
+                    t === "income"
+                      ? "bg-[#477A71]"
+                      : t === "expense"
+                      ? "bg-[#F0BB40]"
+                      : "bg-[#477A71]"
+                  }`}
+                  transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
+                />
+              )}
               {t}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="space-y-3">
+        {/* Amount Input */}
+        <motion.div variants={fadeInUp} className="space-y-3">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">
             How much?
           </label>
-
           <div className="relative group">
             <input
               type="number"
@@ -109,28 +143,37 @@ const AddTransactionPage = () => {
               className="w-full bg-white border-2 border-slate-50 rounded-2xl py-8 pl-14 pr-6 text-4xl font-black text-slate-800 placeholder:text-slate-100 focus:outline-none focus:border-[#477a71]/20 shadow-xl shadow-slate-200/40 transition-all"
             />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="space-y-4">
+        {/* Categories with Entry Animation */}
+        <motion.div variants={fadeInUp} className="space-y-4">
           <div className="flex justify-between items-center px-1">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
               Category
             </label>
-            {category && (
-              <span className="text-[10px] font-bold text-[#477A71] uppercase">
-                Selected: {category}
-              </span>
-            )}
+            <AnimatePresence mode="wait">
+              {category && (
+                <motion.span
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  key={category}
+                  className="text-[10px] font-bold text-[#477A71] uppercase"
+                >
+                  Selected: {category}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
-          <div className="grid grid-cols-4 gap-y-6 gap-x-2">
+          <motion.div className="grid grid-cols-4 gap-y-6 gap-x-2">
             {filteredCategories.map((cat) => {
               const IconComponent =
                 (Icons as any)[cat.icon] ?? Icons.MoreHorizontal;
               const isSelected = category === cat.name;
-              const iconColor = "text-white";
 
               return (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   key={cat.id}
                   onClick={() => setCategory(cat.name)}
                   className="flex flex-col items-center gap-2 transition-all"
@@ -146,7 +189,7 @@ const AddTransactionPage = () => {
                   >
                     <IconComponent
                       size={26}
-                      className={iconColor}
+                      className="text-white"
                       strokeWidth={2.5}
                     />
                   </div>
@@ -157,14 +200,14 @@ const AddTransactionPage = () => {
                   >
                     {cat.name}
                   </span>
-                </button>
+                </motion.button>
               );
             })}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Bottom Inputs - Subtle Teal Accents */}
-        <div className="space-y-3">
+        {/* Form Controls */}
+        <motion.div variants={fadeInUp} className="space-y-3">
           <button
             type="button"
             onClick={() => dateInputRef.current?.showPicker()}
@@ -209,17 +252,19 @@ const AddTransactionPage = () => {
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#F0BB40] transition-colors"
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Action Button - Pure Teal with Gold Glow */}
-        <button
+        {/* Submit Button */}
+        <motion.button
+          variants={fadeInUp}
+          whileTap={{ scale: 0.97 }}
           onClick={handleSubmit}
           disabled={!amount || !category}
           className="w-full py-5 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] text-white bg-[#477A71] shadow-2xl shadow-[#477A71]/40 transition-all active:scale-[0.95] disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none"
         >
           Confirm Transaction
-        </button>
-      </main>
+        </motion.button>
+      </motion.main>
     </div>
   );
 };

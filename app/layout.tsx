@@ -20,7 +20,11 @@ export const metadata = {
   description: "Offline-first personal finance tracker",
   manifest: "/manifest.json",
 };
-
+export const viewport = {
+  themeColor: "#477A71",
+  width: "device-width",
+  initialScale: 1,
+};
 export default function RootLayout({
   children,
 }: {
