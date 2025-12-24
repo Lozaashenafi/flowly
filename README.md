@@ -11,8 +11,6 @@ Flowly is a lightweight, privacy-focused personal finance tracker built for pers
   <img src="./public/page4.jpg" alt="transaction" width="24%" />
 </div>
 
-> _Note: Place your actual screenshots in a `screenshots/` folder in the repository root and update the filenames above._
-
 ## Features
 
 - 💻 Fully offline-first Progressive Web App (installable on desktop and mobile)
@@ -31,21 +29,13 @@ Flowly is a lightweight, privacy-focused personal finance tracker built for pers
 - **Architecture**: Clean Architecture
 - **PWA**: Next.js PWA support with manifest and service worker
 
-## Project Structure (Clean Architecture)
-
-Root files:
-
-- `.gitignore`
-- `eslint.config.mjs`
-- `next.config.mjs` (or similar)
-
 ## Installation & Setup
 
 ### Local Development
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/your-username/flowly.git
+   git clone https://github.com/Lozaashenafi/flowly.git
    cd flowly
    ```
 
