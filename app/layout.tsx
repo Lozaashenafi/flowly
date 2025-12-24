@@ -49,8 +49,12 @@ export default function RootLayout({
             gtag('config', 'G-7TVTE4BS7T', { page_path: window.location.pathname });
           `}
         </Script>
-
         {/* Open Graph / Social Preview */}
+        <meta
+          name="description"
+          content="Track your income and expenses easily. Your data stays on your device, and it works as a PWA!"
+        />
+        {/* Open Graph */}
         <meta property="og:title" content="Flowly - Personal Finance App" />
         <meta
           property="og:description"
@@ -61,10 +65,10 @@ export default function RootLayout({
           content="https://flowly-finance.vercel.app/preview.png"
         />
         <meta property="og:url" content="https://flowly-finance.vercel.app/" />
-        <meta property="og:type" content="website" />
-
+        <meta property="og:type" content="website" /> {/* Add this */}
         {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary_large_image" />{" "}
+        {/* Optional: for larger preview */}
         <meta name="twitter:title" content="Flowly - Personal Finance App" />
         <meta
           name="twitter:description"
