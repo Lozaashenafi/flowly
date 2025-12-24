@@ -85,6 +85,7 @@ export default function RootLayout({
             <BottomNav />
           </div>
         </FlowlyProvider>
+        <Analytics />
       </body>
     </html>
   );
