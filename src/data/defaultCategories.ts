@@ -90,7 +90,7 @@ export const defaultCategories: Category[] = [
   },
   {
     id: "cat-debt-loan",
-    name: "Loan Repayment",
+    name: "Personal Loan",
     icon: "PiggyBank",
     type: TransactionTypeVO.Debt,
     color: "bg-slate-200",
