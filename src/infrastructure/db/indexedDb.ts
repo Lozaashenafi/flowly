@@ -9,22 +9,28 @@ export function getDb() {
   }
 
   if (!dbPromise) {
-    dbPromise = openDB("flowly-db", 2, {
+    // CHANGE THIS FROM 2 TO 3
+    dbPromise = openDB("flowly-db", 3, {
       upgrade(db, oldVersion, newVersion, transaction) {
-        // Only create transactions store if it doesn't exist
+        // 1. Transactions
         if (!db.objectStoreNames.contains("transactions")) {
           db.createObjectStore("transactions", { keyPath: "id" });
         }
-
-        // Only create categories store if it doesn't exist
+        // 2. Categories
         if (!db.objectStoreNames.contains("categories")) {
           db.createObjectStore("categories", { keyPath: "id" });
         }
+        // 3. Budgets (This is what was missing in the browser)
+        if (!db.objectStoreNames.contains("budgets")) {
+          db.createObjectStore("budgets", { keyPath: "id" });
+        }
+        // 4. Debts (This is what was missing in the browser)
+        if (!db.objectStoreNames.contains("debts")) {
+          db.createObjectStore("debts", { keyPath: "id" });
+        }
 
-        // Optional: Log for debugging
         console.log(`DB upgraded from ${oldVersion} to ${newVersion}`);
       },
-      // Handle cases where upgrade fails (e.g., user has old version in another tab)
       blocked() {
         console.warn("DB upgrade blocked. Close other tabs using this app.");
         alert(
@@ -33,7 +39,6 @@ export function getDb() {
       },
       blocking() {
         console.warn("Newer version detected. Reloading...");
-        // Force reload when a newer version is available
         window.location.reload();
       },
     });

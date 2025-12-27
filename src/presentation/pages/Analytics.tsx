@@ -1,15 +1,24 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, BarChart } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  BarChart,
+  Target,
+  ArrowUpRight,
+  ArrowDownLeft,
+} from "lucide-react";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { format, addMonths, subMonths } from "date-fns";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
 const Analytics = () => {
-  const { transactions, isLoading } = useFlowlyContext();
+  const { transactions, getWeeklyBudgetProgress, debts, isLoading } =
+    useFlowlyContext();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
+  const [direction, setDirection] = useState(0);
 
+  // --- Handlers ---
   const nextMonth = () => {
     setDirection(1);
     setCurrentDate(addMonths(currentDate, 1));
@@ -19,6 +28,7 @@ const Analytics = () => {
     setCurrentDate(subMonths(currentDate, 1));
   };
 
+  // --- Calculations ---
   const stats = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -35,7 +45,6 @@ const Analytics = () => {
       (acc, t) => {
         const type = getTypeValue(t);
         const amount = t.amount;
-
         if (type === "income") acc.income += amount;
         else if (type === "expense") acc.expense += amount;
         else if (type === "debt") {
@@ -54,24 +63,33 @@ const Analytics = () => {
     };
   }, [transactions, currentDate]);
 
-  const cardContainerVariants: Variants = {
+  // Budget Data for this week
+  const budgetProgress = getWeeklyBudgetProgress();
+
+  // Debt Portfolio (Overall remaining)
+  const debtPortfolio = useMemo(() => {
+    return debts.reduce(
+      (acc, d) => {
+        if (d.type === "owed") acc.totalOwed += d.remainingAmount;
+        else acc.totalOwesMe += d.remainingAmount;
+        return acc;
+      },
+      { totalOwed: 0, totalOwesMe: 0 }
+    );
+  }, [debts]);
+
+  // --- Animation Variants ---
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
-  const cardItemVariants: Variants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     show: {
       y: 0,
       opacity: 1,
-      transition: {
-        type: "spring", // TypeScript now knows this is a valid spring type
-        stiffness: 300,
-        damping: 24,
-      },
+      transition: { type: "spring", stiffness: 300, damping: 24 },
     },
   };
 
@@ -84,154 +102,223 @@ const Analytics = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-slate-800 font-sans pb-32 overflow-x-hidden">
-      <header className="px-6 pt-8 pb-4">
+      <header className="px-6 pt-12 pb-6">
         <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-2xl font-bold text-gray-800 flex items-center gap-2"
+          className="text-3xl font-black text-slate-900 tracking-tight"
         >
-          Analytics
+          Financial <span className="text-[#477A71]">Analytics</span>
         </motion.h1>
       </header>
 
-      {/* Date Selector */}
-      <div className="flex items-center justify-between px-6 py-4">
+      {/* Month Selector */}
+      <div className="flex items-center justify-between px-6 py-4 mb-4">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={prevMonth}
-          className="p-2 hover:bg-white rounded-full shadow-sm transition text-[#477A71] bg-white/50"
+          className="p-2 hover:bg-white rounded-full shadow-sm text-[#477A71] bg-white/50"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft size={20} />
         </motion.button>
-
         <AnimatePresence mode="wait" custom={direction}>
           <motion.span
             key={currentDate.toISOString()}
-            custom={direction}
-            initial={{ opacity: 0, x: direction * 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -20 }}
-            className="text-lg font-semibold text-gray-700"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-lg font-black text-slate-700 uppercase tracking-widest"
           >
             {format(currentDate, "MMMM yyyy")}
           </motion.span>
         </AnimatePresence>
-
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={nextMonth}
-          className="p-2 hover:bg-white rounded-full shadow-sm transition text-[#477A71] bg-white/50"
+          className="p-2 hover:bg-white rounded-full shadow-sm text-[#477A71] bg-white/50"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight size={20} />
         </motion.button>
       </div>
 
-      <main className="flex-1 px-4">
+      <main className="flex-1 px-4 space-y-10">
         <AnimatePresence mode="wait">
-          {!stats.hasData ? (
+          {!stats.hasData && budgetProgress.length === 0 ? (
             <motion.div
-              key="empty"
+              key="empty-state" // Fixed: Added key
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="flex flex-col items-center justify-center py-16 space-y-4"
+              className="flex flex-col items-center justify-center py-20"
             >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="bg-[#F0BB40]/10 p-4 rounded-2xl"
-              >
-                <BarChart className="w-12 h-12 text-[#477A71]" />
-              </motion.div>
-              <div className="text-center">
-                <h3 className="font-bold text-lg text-gray-800">
-                  No data for this month
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  Add transactions to see your analytics
-                </p>
-              </div>
+              <BarChart className="w-16 h-16 text-slate-200 mb-4" />
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+                No activity found
+              </p>
             </motion.div>
           ) : (
             <motion.div
-              key="data"
-              variants={cardContainerVariants}
+              key="analytics-content" // Fixed: Added key
+              variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              className="space-y-10"
             >
-              {/* Total Income Card */}
-              <motion.div
-                variants={cardItemVariants}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-              >
-                <p className="text-[#477A71] font-bold text-xs uppercase tracking-widest mb-1">
-                  Total Income
-                </p>
-                <p className="text-3xl font-bold text-[#477A71]">
-                  {stats.income.toLocaleString()} ETB
-                </p>
-              </motion.div>
+              {/* SECTION 1: CASH FLOW CARDS */}
+              <div key="monthly-flow-section" className="space-y-4">
+                {" "}
+                {/* Fixed: Added key */}
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                  Monthly Flow
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm"
+                  >
+                    <p className="text-[#477A71] font-black text-[10px] uppercase tracking-widest mb-1">
+                      Total Income
+                    </p>
+                    <p className="text-3xl font-black text-slate-900">
+                      {stats.income.toLocaleString()}{" "}
+                      <span className="text-sm font-bold text-slate-300">
+                        ETB
+                      </span>
+                    </p>
+                  </motion.div>
 
-              {/* Total Expenses Card */}
-              <motion.div
-                variants={cardItemVariants}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-              >
-                <p className="text-[#F0BB40] font-bold text-xs uppercase tracking-widest mb-1">
-                  Total Expenses
-                </p>
-                <p className="text-3xl font-bold text-[#F0BB40]">
-                  {stats.expense.toLocaleString()} ETB
-                </p>
-              </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm"
+                  >
+                    <p className="text-[#F0BB40] font-black text-[10px] uppercase tracking-widest mb-1">
+                      Total Expenses
+                    </p>
+                    <p className="text-3xl font-black text-slate-900">
+                      {stats.expense.toLocaleString()}{" "}
+                      <span className="text-sm font-bold text-slate-300">
+                        ETB
+                      </span>
+                    </p>
+                  </motion.div>
 
-              {/* Balance Card */}
-              <motion.div
-                variants={cardItemVariants}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-              >
-                <p className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-1">
-                  Monthly Balance
-                </p>
-                <p
-                  className={`text-3xl font-bold ${
-                    stats.balance >= 0 ? "text-[#477A71]" : "text-[#F0BB40]"
-                  }`}
-                >
-                  {stats.balance >= 0 ? "+" : "-"} ETB{" "}
-                  {Math.abs(stats.balance).toLocaleString()}
-                </p>
-              </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm md:col-span-2"
+                  >
+                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">
+                      Monthly Balance
+                    </p>
+                    <p
+                      className={`text-4xl font-black ${
+                        stats.balance >= 0 ? "text-[#477A71]" : "text-rose-500"
+                      }`}
+                    >
+                      {stats.balance >= 0 ? "+" : "-"}
+                      {Math.abs(stats.balance).toLocaleString()}{" "}
+                      <span className="text-sm font-bold opacity-30 text-slate-900">
+                        ETB
+                      </span>
+                    </p>
+                  </motion.div>
+                </div>
+              </div>
 
-              {/* Debt Cards */}
-              <motion.div
-                variants={cardItemVariants}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-              >
-                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-1">
-                  Debt (I Owe)
-                </p>
-                <p className="text-3xl font-bold text-[#F0BB40]">
-                  {stats.debtOwed.toLocaleString()} ETB
-                </p>
-              </motion.div>
+              {/* SECTION 2: BUDGET COMPLIANCE */}
+              {budgetProgress.length > 0 && (
+                <div key="budget-pulse-section" className="space-y-4">
+                  {" "}
+                  {/* Fixed: Added key */}
+                  <div className="flex items-center gap-2 ml-2">
+                    <Target size={14} className="text-[#477A71]" />
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                      Budget Performance (Weekly)
+                    </h3>
+                  </div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-sm space-y-6"
+                  >
+                    {budgetProgress.map((item: any, index: number) => (
+                      <div
+                        key={item.categoryId || `budget-${index}`}
+                        className="space-y-2"
+                      >
+                        {" "}
+                        {/* Fixed: Stronger key logic */}
+                        <div className="flex justify-between items-end">
+                          <span className="text-sm font-bold text-slate-800">
+                            {item.category}
+                          </span>
+                          <span
+                            className={`text-[10px] font-black ${
+                              item.isOver ? "text-rose-500" : "text-[#477A71]"
+                            }`}
+                          >
+                            {item.spent.toLocaleString()} /{" "}
+                            {Math.round(item.target).toLocaleString()} ETB
+                          </span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${item.percentage}%` }}
+                            className={`h-full ${
+                              item.isOver ? "bg-rose-400" : "bg-[#477A71]"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
 
-              <motion.div
-                variants={cardItemVariants}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-              >
-                <p className="text-[#477A71] font-bold text-xs uppercase tracking-widest mb-1">
-                  Debt (Owes Me)
-                </p>
-                <p className="text-3xl font-bold text-[#477A71]">
-                  {stats.debtOwesMe.toLocaleString()} ETB
-                </p>
-              </motion.div>
+              {/* SECTION 3: DEBT PORTFOLIO */}
+              <div key="debt-portfolio-section" className="space-y-4">
+                {" "}
+                {/* Fixed: Added key */}
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                  Debt Portfolio (Total)
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-rose-50/50 p-6 rounded-[2rem] border border-rose-100"
+                  >
+                    <div className="flex items-center gap-2 mb-2 text-rose-500">
+                      <ArrowUpRight size={14} />
+                      <p className="font-black text-[9px] uppercase tracking-widest">
+                        I Owe
+                      </p>
+                    </div>
+                    <p className="text-2xl font-black text-rose-600">
+                      {debtPortfolio.totalOwed.toLocaleString()}
+                    </p>
+                    <p className="text-[8px] font-bold text-rose-400 uppercase mt-1">
+                      Current Liabilities
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100"
+                  >
+                    <div className="flex items-center gap-2 mb-2 text-emerald-600">
+                      <ArrowDownLeft size={14} />
+                      <p className="font-black text-[9px] uppercase tracking-widest">
+                        Owes Me
+                      </p>
+                    </div>
+                    <p className="text-2xl font-black text-emerald-600">
+                      {debtPortfolio.totalOwesMe.toLocaleString()}
+                    </p>
+                    <p className="text-[8px] font-bold text-emerald-400 uppercase mt-1">
+                      Total Assets
+                    </p>
+                  </motion.div>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

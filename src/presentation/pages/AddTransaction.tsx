@@ -87,19 +87,18 @@ const AddTransactionPage = () => {
           </p>
         </div>
       </motion.header>
-
       <motion.main
         variants={staggerContainer}
         initial="initial"
         animate="animate"
         className="px-5 space-y-8"
       >
-        {/* Type Selector Tabs */}
+        {/* Type Selector Tabs - REMOVED DEBT */}
         <motion.div
           variants={fadeInUp}
           className="bg-white p-1.5 rounded-2xl flex shadow-sm border border-slate-100 relative"
         >
-          {(["income", "expense", "debt"] as const).map((t) => (
+          {(["income", "expense"] as const).map((t) => (
             <button
               key={t}
               onClick={() => {
@@ -115,11 +114,7 @@ const AddTransactionPage = () => {
                 <motion.div
                   layoutId="activeTab"
                   className={`absolute inset-0 rounded-[20px] -z-10 ${
-                    t === "income"
-                      ? "bg-[#477A71]"
-                      : t === "expense"
-                      ? "bg-[#F0BB40]"
-                      : "bg-[#477A71]"
+                    t === "income" ? "bg-[#477A71]" : "bg-[#F0BB40]"
                   }`}
                   transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
                 />
@@ -142,6 +137,9 @@ const AddTransactionPage = () => {
               onChange={(e) => setAmount(e.target.value)}
               className="w-full bg-white border-2 border-slate-50 rounded-2xl py-8 pl-14 pr-6 text-4xl font-black text-slate-800 placeholder:text-slate-100 focus:outline-none focus:border-[#477a71]/20 shadow-xl shadow-slate-200/40 transition-all"
             />
+            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-light text-2xl group-focus-within:text-[#477a71] transition-colors">
+              $
+            </span>
           </div>
         </motion.div>
 
@@ -245,7 +243,7 @@ const AddTransactionPage = () => {
               placeholder="Add a note..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-white border border-slate-100 rounded-[22px] p-4 pl-12 text-sm font-bold text-slate-700 focus:border-[#477A71]/30 focus:outline-none shadow-sm transition-all"
+              className="w-full bg-white border border-slate-100 rounded-[22px] p-4 pl-12 text-sm font-bold text-slate-700 focus:border-[#477a71]/30 focus:outline-none shadow-sm transition-all"
             />
             <Icons.Edit3
               size={18}
@@ -260,9 +258,13 @@ const AddTransactionPage = () => {
           whileTap={{ scale: 0.97 }}
           onClick={handleSubmit}
           disabled={!amount || !category}
-          className="w-full py-5 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] text-white bg-[#477A71] shadow-2xl shadow-[#477A71]/40 transition-all active:scale-[0.95] disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none"
+          className={`w-full py-5 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] text-white shadow-2xl transition-all active:scale-[0.95] disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none ${
+            type === "income"
+              ? "bg-[#477A71] shadow-[#477A71]/40"
+              : "bg-[#F0BB40] shadow-[#F0BB40]/40"
+          }`}
         >
-          Confirm Transaction
+          Confirm {type}
         </motion.button>
       </motion.main>
     </div>
