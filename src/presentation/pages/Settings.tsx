@@ -134,7 +134,7 @@ export default function Settings() {
         </motion.section>
 
         {/* Action Buttons */}
-        <motion.section variants={containerVariants} className="space-y-4">
+        <motion.section variants={containerVariants} className="space-y-4 ">
           {/* Install App */}
           <motion.button
             variants={itemVariants}
@@ -238,7 +238,7 @@ export default function Settings() {
             >
               {/* CLEAR DATA MODAL */}
               {modalType === "clear" && (
-                <div className="text-center">
+                <div className="text-center pb-10">
                   <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <AlertTriangle size={32} />
                   </div>
@@ -268,7 +268,7 @@ export default function Settings() {
 
               {/* INSTALL MODAL */}
               {modalType === "install" && (
-                <div className="text-center">
+                <div className="text-center pb-10">
                   <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Info size={32} />
                   </div>
@@ -293,7 +293,7 @@ export default function Settings() {
 
               {/* SUCCESS MODAL */}
               {modalType === "success" && (
-                <div className="text-center">
+                <div className="text-center pb-15">
                   <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 size={32} />
                   </div>

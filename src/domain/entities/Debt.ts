@@ -8,4 +8,5 @@ export interface Debt {
   dueDate?: string;
   type: DebtType;
   createdAt: number;
+  isClosed: boolean;
 }

@@ -1,6 +1,12 @@
 "use client";
 import React, { useMemo } from "react";
-import { TrendingUp, TrendingDown, CreditCard, Wallet } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
+  Wallet,
+  Target,
+} from "lucide-react";
 import Header from "../components/layout/Header";
 import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
@@ -19,10 +25,6 @@ const Dashboard = () => {
   const recentTransactions = useMemo(() => {
     return transactions.slice(0, 4);
   }, [transactions]);
-
-  const handleAddTransaction = () => {
-    router.push("/add");
-  };
 
   // Animation Variants
   const containerVariants = {
@@ -106,12 +108,12 @@ const Dashboard = () => {
           <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-[#F0BB40]/10 rounded-full blur-3xl"></div>
         </motion.section>
 
-        {/* Quick Add Section */}
+        {/* Quick Add Section - UPDATED TO 4 COLUMNS */}
         <motion.section variants={itemVariants} className="px-2">
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
-            Quick Add
+            Quick Actions
           </h3>
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-4 gap-2 sm:gap-4">
             {[
               {
                 label: "Income",
@@ -119,6 +121,7 @@ const Dashboard = () => {
                 color: "bg-[#477A71]",
                 iconCol: "text-[#F0BB40]",
                 textCol: "text-white",
+                path: "/add",
               },
               {
                 label: "Expense",
@@ -126,6 +129,7 @@ const Dashboard = () => {
                 color: "bg-[#F0BB40]",
                 iconCol: "text-[#477A71]",
                 textCol: "text-[#477A71]",
+                path: "/add",
               },
               {
                 label: "Debt",
@@ -133,17 +137,26 @@ const Dashboard = () => {
                 color: "bg-[#477A71]",
                 iconCol: "text-[#F0BB40]",
                 textCol: "text-white",
+                path: "/debt",
+              },
+              {
+                label: "Budget",
+                icon: Target,
+                color: "bg-[#F0BB40]",
+                iconCol: "text-[#477A71]",
+                textCol: "text-[#477A71]",
+                path: "/budget",
               },
             ].map((btn, idx) => (
               <motion.button
                 key={idx}
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleAddTransaction}
-                className={`flex flex-col items-center justify-center gap-2 py-5 sm:py-6 rounded-2xl ${btn.color} ${btn.textCol} shadow-sm transition-colors`}
+                onClick={() => router.push(btn.path)}
+                className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-6 rounded-2xl ${btn.color} ${btn.textCol} shadow-sm transition-colors`}
               >
-                <btn.icon className={`size-6 sm:size-7 ${btn.iconCol}`} />
-                <span className="text-xs sm:text-sm font-semibold">
+                <btn.icon className={`size-5 sm:size-7 ${btn.iconCol}`} />
+                <span className="text-[10px] sm:text-xs font-bold">
                   {btn.label}
                 </span>
               </motion.button>
@@ -186,7 +199,7 @@ const Dashboard = () => {
                   Start tracking your income and expenses to see them here.
                 </p>
                 <button
-                  onClick={handleAddTransaction}
+                  onClick={() => router.push("/add")}
                   className="bg-[#477A71] text-white px-8 py-3 rounded-2xl font-semibold text-sm shadow-md hover:bg-[#3a615a] transition-colors"
                 >
                   Add Transaction
