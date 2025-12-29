@@ -65,13 +65,13 @@ const ICON_OPTIONS = Object.values(ICON_MAP);
 const COLOR_OPTIONS = [
   "bg-[#477A71]",
   "bg-[#F0BB40]",
-  "bg-emerald-200",
-  "bg-teal-200",
-  "bg-blue-200",
-  "bg-indigo-200",
-  "bg-violet-200",
-  "bg-rose-200",
-  "bg-slate-200",
+  "bg-emerald-400",
+  "bg-teal-400",
+  "bg-blue-400",
+  "bg-indigo-400",
+  "bg-violet-400",
+  "bg-rose-400",
+  "bg-slate-400",
 ];
 
 type TabType = "income" | "expense" | "debt";
@@ -86,14 +86,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>("expense");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<
-    | (Partial<Category> & {
-        iconComponent?: React.ComponentType<any>;
-        iconColor?: string;
-      })
-    | null
-  >(null);
-
+  const [editingCategory, setEditingCategory] = useState<any>(null);
   const [deleteConfirmCategory, setDeleteConfirmCategory] =
     useState<Category | null>(null);
 
@@ -129,7 +122,6 @@ export default function CategoriesPage() {
       name: "",
       iconComponent: Briefcase,
       color: "bg-[#477A71]",
-      iconColor: "text-[#477A71]",
     });
     setIsModalOpen(true);
   };
@@ -139,7 +131,6 @@ export default function CategoriesPage() {
     setEditingCategory({
       ...category,
       iconComponent: IconComponent,
-      iconColor: category.color.replace("bg-", "text-"),
     });
     setIsModalOpen(true);
   };
@@ -176,46 +167,48 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="mx-auto pb-32 relative min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="mx-auto pb-32 relative min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-500 overflow-x-hidden">
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-8 pb-4 flex justify-between items-center"
+        className="px-6 pt-12 pb-6 flex justify-between items-center"
       >
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           Categories
         </h1>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={openCreateModal}
-          className="bg-[#477A71] hover:bg-[#3a615a] text-white p-2.5 rounded-xl transition-colors shadow-md"
+          className="bg-[#477A71] text-white p-3 rounded-2xl shadow-lg"
         >
-          <Plus size={24} />
+          <Plus size={24} strokeWidth={3} />
         </motion.button>
       </motion.header>
 
       {/* TABS */}
       <div className="px-6 mb-8">
-        <div className="bg-white p-1.5 rounded-2xl flex shadow-sm border border-slate-100 relative">
+        <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl flex shadow-sm border border-slate-100 dark:border-slate-800">
           {(["income", "expense", "debt"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`relative flex-1 py-3.5 rounded-[20px] text-[11px] font-black uppercase tracking-[0.15em] transition-colors z-10 ${
-                activeTab === tab ? "text-white" : "text-gray-400"
+              className={`relative flex-1 py-3.5 rounded-[18px] text-[11px] font-black uppercase tracking-widest transition-colors z-10 ${
+                activeTab === tab
+                  ? "text-white"
+                  : "text-gray-400 dark:text-slate-500"
               }`}
             >
               <span className="relative z-20">{tab}</span>
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTab"
-                  className={`absolute inset-0 rounded-[18px] shadow-sm ${
+                  className={`absolute inset-0 rounded-[18px] ${
                     tab === "income"
                       ? "bg-[#477A71]"
                       : tab === "expense"
                       ? "bg-[#F0BB40]"
-                      : "bg-[#477A71]"
+                      : "bg-slate-800"
                   }`}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
@@ -230,13 +223,13 @@ export default function CategoriesPage() {
         <AnimatePresence mode="popLayout">
           {filteredCategories.length === 0 ? (
             <motion.div
-              key="empty"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-3xl p-12 text-center border border-dashed border-gray-200"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border-2 border-dashed border-gray-100 dark:border-slate-800"
             >
-              <p className="text-gray-400 font-medium">No categories found.</p>
+              <p className="text-gray-400 dark:text-slate-600 font-bold uppercase text-[10px] tracking-widest">
+                Empty State
+              </p>
             </motion.div>
           ) : (
             filteredCategories.map((cat, idx) => {
@@ -245,43 +238,39 @@ export default function CategoriesPage() {
                 <motion.div
                   key={cat.id}
                   layout
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all"
+                  variants={{
+                    hidden: { opacity: 0, x: 20 },
+                    show: { opacity: 1, x: 0 },
+                  }}
+                  initial="hidden"
+                  animate="show"
+                  className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 flex items-center justify-between shadow-sm transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`${cat.color} w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shadow-inner`}
+                      className={`${cat.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-inner`}
                     >
-                      <IconComponent
-                        className="text-white"
-                        size={26}
-                        strokeWidth={2.5}
-                      />
+                      <IconComponent size={26} strokeWidth={2.5} />
                     </div>
-                    <div className="flex flex-col">
-                      <h4 className="font-bold text-gray-800 text-lg leading-tight">
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-lg">
                         {cat.name}
                       </h4>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-[0.15em]">
-                          {cat.type.value}
-                        </span>
-                      </div>
+                      <p className="text-[10px] text-gray-400 dark:text-slate-500 font-black uppercase tracking-widest">
+                        {cat.type.value}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => openEditModal(cat)}
-                      className="p-2 text-gray-300 hover:text-[#477A71] hover:bg-gray-50 rounded-xl transition-colors"
+                      className="p-2 text-gray-300 dark:text-slate-600 hover:text-[#477A71]"
                     >
                       <Pencil size={18} />
                     </button>
                     <button
                       onClick={() => setDeleteConfirmCategory(cat)}
-                      className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                      className="p-2 text-gray-300 dark:text-slate-600 hover:text-rose-500"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -293,42 +282,43 @@ export default function CategoriesPage() {
         </AnimatePresence>
       </div>
 
-      {/* MODAL */}
+      {/* CREATE/EDIT MODAL - CENTERED FOR KEYBOARD FIX */}
       <AnimatePresence>
         {isModalOpen && editingCategory && (
-          <div className="pb-15 fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ y: 100, opacity: 0, scale: 0.95 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 100, opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-lg relative z-10"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg relative z-10 overflow-hidden border dark:border-slate-800"
             >
               <div className="px-6 py-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white">
                     {editingCategory.id ? "Edit" : "New"} Category
                   </h2>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400"
                   >
                     <X size={24} />
                   </button>
                 </div>
+
                 <div className="space-y-6">
                   <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
                       Name
                     </label>
                     <input
+                      autoFocus // Keyboard opens automatically
                       type="text"
                       value={editingCategory.name || ""}
                       onChange={(e) =>
@@ -337,20 +327,19 @@ export default function CategoriesPage() {
                           name: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-bold focus:ring-2 focus:ring-[#477A71] outline-none border border-gray-100"
-                      placeholder="Category Name"
+                      className="w-full px-6 py-4 bg-gray-50 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-[#477A71] transition-all"
+                      placeholder="e.g. Shopping"
                     />
                   </div>
+
                   <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
                       Icon
                     </label>
-                    <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1">
+                    <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 scrollbar-hide">
                       {ICON_OPTIONS.map((Icon, idx) => (
-                        <motion.button
+                        <button
                           key={idx}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
                           onClick={() =>
                             setEditingCategory({
                               ...editingCategory,
@@ -359,52 +348,53 @@ export default function CategoriesPage() {
                           }
                           className={`p-3 rounded-xl flex items-center justify-center transition-all ${
                             editingCategory.iconComponent === Icon
-                              ? "bg-[#477A71] text-white"
-                              : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                              ? "bg-[#477A71] text-white shadow-lg"
+                              : "bg-gray-50 dark:bg-slate-800 text-gray-400"
                           }`}
                         >
                           <Icon size={20} />
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   </div>
+
                   <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
                       Color
                     </label>
                     <div className="flex flex-wrap gap-3">
                       {COLOR_OPTIONS.map((color) => (
-                        <motion.button
+                        <button
                           key={color}
-                          whileHover={{ scale: 1.2 }}
                           onClick={() =>
-                            setEditingCategory({
-                              ...editingCategory,
-                              color,
-                              iconColor: color.replace("bg-", "text-"),
-                            })
+                            setEditingCategory({ ...editingCategory, color })
                           }
-                          className={`${color} w-8 h-8 rounded-full flex items-center justify-center transition-transform`}
+                          className={`${color} w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110`}
                         >
                           {editingCategory.color === color && (
-                            <Check className="text-white" size={16} />
+                            <Check
+                              className="text-white"
+                              size={18}
+                              strokeWidth={4}
+                            />
                           )}
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   </div>
+
                   <div className="flex gap-3 pt-4">
                     <button
                       onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-4 rounded-2xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition"
+                      className="flex-1 py-4 rounded-2xl font-bold bg-gray-100 dark:bg-slate-800 text-gray-500"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
-                      className="flex-1 py-4 rounded-2xl font-bold text-white bg-[#477A71] hover:bg-[#3a615a] shadow-lg transition"
+                      className="flex-1 py-4 rounded-2xl font-bold text-white bg-[#477A71] shadow-lg shadow-[#477A71]/20"
                     >
-                      {editingCategory.id ? "Save Changes" : "Create Category"}
+                      Save
                     </button>
                   </div>
                 </div>
@@ -417,41 +407,41 @@ export default function CategoriesPage() {
       {/* DELETE CONFIRMATION */}
       <AnimatePresence>
         {deleteConfirmCategory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeleteConfirmCategory(null)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-xs w-full p-6 text-center relative z-10"
+              className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl max-w-xs w-full p-8 text-center relative z-10 border dark:border-slate-800"
             >
-              <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-rose-50 dark:bg-rose-900/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="text-rose-500" size={28} />
               </div>
-              <h3 className="font-bold text-gray-800 text-lg mb-2">
-                Delete Category?
+              <h3 className="font-black text-slate-900 dark:text-white text-xl mb-2">
+                Delete?
               </h3>
-              <p className="text-xs text-gray-500 mb-6 uppercase tracking-widest font-bold">
+              <p className="text-xs text-gray-500 dark:text-slate-500 mb-6 font-bold uppercase tracking-widest">
                 "{deleteConfirmCategory.name}"
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteConfirmCategory(null)}
-                  className="flex-1 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl"
+                  className="flex-1 py-3 bg-gray-100 dark:bg-slate-800 text-gray-500 font-bold rounded-xl"
                 >
                   No
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl"
+                  className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-200 dark:shadow-none"
                 >
-                  Yes, Delete
+                  Delete
                 </button>
               </div>
             </motion.div>

@@ -45,7 +45,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+    <div className="bg-gray-50 dark:bg-slate-950 min-h-screen pb-24 md:pb-8 transition-colors duration-500">
       <Header />
       <motion.main
         initial="hidden"
@@ -108,9 +108,9 @@ const Dashboard = () => {
           <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-[#F0BB40]/10 rounded-full blur-3xl"></div>
         </motion.section>
 
-        {/* Quick Add Section - UPDATED TO 4 COLUMNS */}
+        {/* Quick Add Section */}
         <motion.section variants={itemVariants} className="px-2">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+          <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">
             Quick Actions
           </h3>
           <div className="grid grid-cols-4 gap-2 sm:gap-4">
@@ -167,12 +167,12 @@ const Dashboard = () => {
         {/* Recent Transactions Section */}
         <motion.section variants={itemVariants} className="px-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
               Recent Transactions
             </h3>
             <button
               onClick={() => router.push("/transactions")}
-              className="text-xs font-bold text-[#477A71] hover:underline transition-all"
+              className="text-xs font-bold text-[#477A71] dark:text-[#5fa195] hover:underline transition-all"
             >
               View All
             </button>
@@ -185,17 +185,17 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-white rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm border border-gray-200 w-full"
+                className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm border border-gray-200 dark:border-slate-800 w-full"
               >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#F0BB40]/10 rounded-full flex items-center justify-center mb-5">
                   <div className="rotate-12 bg-[#477A71] p-2 rounded text-white text-2xl">
                     <Wallet size={28} />
                   </div>
                 </div>
-                <h4 className="font-bold text-gray-800 text-lg mb-2">
+                <h4 className="font-bold text-gray-800 dark:text-white text-lg mb-2">
                   No transactions yet
                 </h4>
-                <p className="text-sm text-gray-600 mb-6 max-w-xs">
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-6 max-w-xs">
                   Start tracking your income and expenses to see them here.
                 </p>
                 <button
@@ -221,7 +221,7 @@ const Dashboard = () => {
                         x: 0,
                         transition: { delay: idx * 0.05 },
                       }}
-                      className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center"
+                      className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex justify-between items-center"
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -229,7 +229,7 @@ const Dashboard = () => {
                             txType === "income"
                               ? "bg-[#477A71]/10 text-[#477A71]"
                               : txType === "debt"
-                              ? "bg-slate-100 text-slate-600"
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                               : "bg-[#F0BB40]/10 text-[#F0BB40]"
                           }`}
                         >
@@ -242,21 +242,21 @@ const Dashboard = () => {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             {tx.category}
                             {txType === "debt" && (
-                              <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">
+                              <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400">
                                 {(tx as any).debtType === "owed"
                                   ? "Owed"
                                   : "Owes Me"}
                               </span>
                             )}
                           </p>
-                          <p className="text-[10px] text-slate-400 font-medium">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                             {format(new Date(tx.date), "MMM dd, yyyy")}
                           </p>
                           {tx.note && (
-                            <p className="text-[10px] text-slate-400 font-medium">
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium italic">
                               {tx.note}
                             </p>
                           )}

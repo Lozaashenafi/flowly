@@ -1,11 +1,26 @@
 @import "tailwindcss";
-body {
-  background-color: #f8fafc; /* Light slate background */
-  font-family: "Inter", sans-serif; /* Clean sans-serif */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 logic: ensure base colors respect dark mode */
+@layer base {
+  body {
+    @apply bg-gray-50 text-slate-900;
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-white;
+  }
 }
 
 .glass-card {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Add a dark version of your glass card if you use it */
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

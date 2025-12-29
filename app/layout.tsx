@@ -5,6 +5,7 @@ import { FlowlyProvider } from "../src/presentation/context/FlowlyContext";
 import { BottomNav } from "../src/presentation/components/layout/BottomNav";
 import { PWARegistrar } from "../src/config/PWARegistrar";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { ThemeProvider } from "../src/presentation/components/theme-provider";
 
 import type { Metadata, Viewport } from "next";
 
@@ -44,24 +45,30 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={` font-sans bg-gray-50`}>
-        <FlowlyProvider>
-          <PWARegistrar />
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-1 pb-20 md:pb-0">{children}</main>
-            <BottomNav />
-          </div>
-        </FlowlyProvider>
-        <Analytics /> {/* Vercel Analytics – keep if you want */}
-        <GoogleAnalytics gaId="G-7TVTE4BS7T" /> {/* Add this */}
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <FlowlyProvider>
+            <PWARegistrar />
+            <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-500">
+              <main className="flex-1 pb-20 md:pb-0">{children}</main>
+              <BottomNav />
+            </div>
+          </FlowlyProvider>
+        </ThemeProvider>
+        <Analytics />
+        <GoogleAnalytics gaId="G-7TVTE4BS7T" />
       </body>
     </html>
   );

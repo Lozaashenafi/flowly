@@ -124,12 +124,12 @@ const TransactionsPage = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-32 overflow-x-hidden">
+    <div className="min-h-screen bg-[#FDFCFB] dark:bg-slate-950 pb-32 overflow-x-hidden transition-colors duration-500">
       <header className="px-6 pt-8 pb-4">
         <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-2xl font-bold text-gray-800 flex items-center gap-2"
+          className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2"
         >
           Transactions
         </motion.h1>
@@ -140,7 +140,7 @@ const TransactionsPage = () => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={prevMonth}
-          className="p-2 bg-white rounded-full shadow-sm text-[#477A71]"
+          className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm text-[#477A71] dark:text-[#477A71]"
         >
           <ChevronLeft className="w-5 h-5" />
         </motion.button>
@@ -150,7 +150,7 @@ const TransactionsPage = () => {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="text-lg font-semibold text-gray-700"
+            className="text-lg font-semibold text-gray-700 dark:text-slate-200"
           >
             {format(currentDate, "MMMM yyyy")}
           </motion.span>
@@ -158,7 +158,7 @@ const TransactionsPage = () => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={nextMonth}
-          className="p-2 bg-white rounded-full shadow-sm text-[#477A71]"
+          className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm text-[#477A71] dark:text-[#477A71]"
         >
           <ChevronRight className="w-5 h-5" />
         </motion.button>
@@ -195,7 +195,7 @@ const TransactionsPage = () => {
                     key={tx.id}
                     layout
                     variants={itemVariants}
-                    className="bg-white p-5 rounded-[2.5rem] border-2 border-slate-50 shadow-sm flex flex-col gap-4"
+                    className="bg-white dark:bg-slate-900 p-5 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm flex flex-col gap-4"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -213,15 +213,15 @@ const TransactionsPage = () => {
                           )}
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                          <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             {tx.category}
                             {txType === "debt" && (
-                              <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">
+                              <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400">
                                 {(tx as any).debtType}
                               </span>
                             )}
                           </h4>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
                             {format(new Date(tx.date), "EEEE, MMM dd")}
                           </p>
                         </div>
@@ -235,18 +235,18 @@ const TransactionsPage = () => {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => openEditModal(tx)}
-                        className="flex-1 py-2.5 bg-slate-50 rounded-xl text-slate-600 text-[10px] font-black uppercase tracking-widest"
+                        className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest"
                       >
                         <Edit3 size={14} className="inline mr-1" /> Edit
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setDeleteId(tx.id)}
-                        className="flex-1 py-2.5 bg-rose-50 rounded-xl text-rose-600 text-[10px] font-black uppercase tracking-widest"
+                        className="flex-1 py-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest"
                       >
                         <Trash2 size={14} className="inline mr-1" /> Delete
                       </motion.button>
@@ -268,27 +268,27 @@ const TransactionsPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeleteId(null)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <motion.div
               initial={{ y: 100, opacity: 0, scale: 0.9 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 100, opacity: 0, scale: 0.9 }}
-              className="relative bg-white rounded-[2.5rem] p-8 w-full max-w-md text-center shadow-2xl"
+              className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md text-center shadow-2xl border dark:border-slate-800"
             >
-              <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={32} />
               </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">
                 Delete Record?
               </h3>
-              <p className="text-sm text-slate-500 mb-8">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
                 This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteId(null)}
-                  className="flex-1 py-4 bg-slate-50 rounded-2xl font-bold text-slate-400"
+                  className="flex-1 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold text-slate-400 dark:text-slate-500"
                 >
                   Cancel
                 </button>
@@ -311,23 +311,23 @@ const TransactionsPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsEditOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative bg-[#FDFCFB] rounded-t-[3rem] p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="relative bg-[#FDFCFB] dark:bg-slate-900 rounded-t-[3rem] p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] border-t dark:border-slate-800"
             >
-              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
-              <h2 className="text-xl font-black text-slate-900 mb-6">
+              <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-8" />
+              <h2 className="text-xl font-black text-slate-900 dark:text-white mb-6">
                 Edit Transaction
               </h2>
 
               <div className="space-y-6">
-                <div className="bg-slate-100 p-1 rounded-2xl flex">
-                  {(["income", "expense", "debt"] as const).map((t) => (
+                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex">
+                  {(["income", "expense"] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => {
@@ -336,8 +336,8 @@ const TransactionsPage = () => {
                       }}
                       className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${
                         editType === t
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-400"
+                          ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                          : "text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {t}
@@ -350,9 +350,9 @@ const TransactionsPage = () => {
                     type="number"
                     value={editAmount}
                     onChange={(e) => setEditAmount(e.target.value)}
-                    className="w-full bg-white border-2 border-slate-50 rounded-2xl py-6 px-6 text-3xl font-black text-slate-800 focus:ring-2 focus:ring-[#477A71] outline-none transition-all"
+                    className="w-full bg-white dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-2xl py-6 px-6 text-3xl font-black text-slate-800 dark:text-white focus:ring-2 focus:ring-[#477A71] outline-none transition-all"
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-300">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-300 dark:text-slate-600">
                     ETB
                   </span>
                 </div>
@@ -379,7 +379,9 @@ const TransactionsPage = () => {
                         </motion.div>
                         <span
                           className={`text-[9px] font-bold ${
-                            selected ? "text-slate-900" : "text-slate-400"
+                            selected
+                              ? "text-slate-900 dark:text-white"
+                              : "text-slate-400 dark:text-slate-600"
                           }`}
                         >
                           {cat.name}

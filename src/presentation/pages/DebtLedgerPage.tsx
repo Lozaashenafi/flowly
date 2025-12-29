@@ -1,12 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, ArrowDownLeft, Plus, DollarSign } from "lucide-react";
 import * as Icons from "lucide-react";
 
 export default function DebtLedgerPage() {
-  // Removed deleteDebt, added addTransaction
   const { debts, addDebtPayment, addDebt, addTransaction, categories } =
     useFlowlyContext();
 
@@ -23,11 +22,18 @@ export default function DebtLedgerPage() {
     (c) => (typeof c.type === "string" ? c.type : c.type.value) === "debt"
   );
 
+  // --- DEFAULT CATEGORY LOGIC ---
+  // When the modal opens, automatically select the first category
+  useEffect(() => {
+    if (isAddOpen && debtCategories.length > 0 && !newDebt.name) {
+      setNewDebt((prev) => ({ ...prev, name: debtCategories[0].name }));
+    }
+  }, [isAddOpen, debtCategories]);
+
   const handleAddDebt = async () => {
     if (!newDebt.name || !newDebt.amount) return;
     const parsedAmount = parseFloat(newDebt.amount);
 
-    // 1. Create the persistent Debt Ledger Record
     await addDebt({
       id: "",
       name: newDebt.name,
@@ -38,11 +44,10 @@ export default function DebtLedgerPage() {
       isClosed: false,
     });
 
-    // 2. Automatically record this as a Transaction in the history
     await addTransaction({
       id: "",
       type: "debt",
-      // @ts-ignore - linking debt type for dashboard logic (+/-)
+      // @ts-ignore
       debtType: newDebt.type,
       amount: parsedAmount,
       category: newDebt.name,
@@ -56,13 +61,13 @@ export default function DebtLedgerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-32">
+    <div className="min-h-screen bg-[#FDFCFB] dark:bg-slate-950 pb-32 transition-colors duration-500">
       <header className="px-6 pt-12 pb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Debt <span className="text-[#477A71]">Ledger</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
             Individual Tracking
           </p>
         </div>
@@ -77,7 +82,7 @@ export default function DebtLedgerPage() {
 
       <main className="px-4 space-y-4">
         {debts.length === 0 ? (
-          <div className="py-20 text-center text-slate-400">
+          <div className="py-20 text-center text-slate-400 dark:text-slate-600">
             <p className="font-bold">No active debts found.</p>
           </div>
         ) : (
@@ -85,15 +90,15 @@ export default function DebtLedgerPage() {
             <motion.div
               key={debt.id}
               layout
-              className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-sm"
+              className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm transition-colors"
             >
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
                   <div
                     className={`p-3 rounded-2xl ${
                       debt.type === "owed"
-                        ? "bg-rose-50 text-rose-500"
-                        : "bg-emerald-50 text-emerald-500"
+                        ? "bg-rose-50 dark:bg-rose-900/20 text-rose-500"
+                        : "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500"
                     }`}
                   >
                     {debt.type === "owed" ? (
@@ -103,26 +108,26 @@ export default function DebtLedgerPage() {
                     )}
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-slate-800">
+                    <h4 className="font-bold text-lg text-slate-800 dark:text-slate-100">
                       {debt.name}
                     </h4>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                       {debt.type === "owed" ? "I borrowed" : "I lent"}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-black text-slate-900">
+                  <p className="text-2xl font-black text-slate-900 dark:text-white">
                     {debt.remainingAmount.toLocaleString()} ETB
                   </p>
-                  <p className="text-[9px] font-bold text-slate-300 uppercase">
+                  <p className="text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase">
                     Left of {debt.totalAmount.toLocaleString()}
                   </p>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-slate-100 h-1.5 rounded-full mb-6 overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mb-6 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
@@ -155,33 +160,32 @@ export default function DebtLedgerPage() {
       {/* --- ADD DEBT MODAL --- */}
       <AnimatePresence>
         {isAddOpen && (
-          <div className="fixed inset-0 z-10 flex items-end justify-center pb-15">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAddOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25 }}
-              className="relative bg-white rounded-t-[3rem] p-8 pb-12 z-10 shadow-2xl max-w-lg mx-auto w-full"
+              className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 z-10 shadow-2xl max-w-lg mx-auto w-full border dark:border-slate-800"
             >
-              <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8" />
-              <h2 className="text-xl font-black text-slate-900 mb-6">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white mb-6">
                 Track New Debt
               </h2>
               <div className="space-y-6">
-                <div className="bg-slate-100 p-1 rounded-2xl flex">
+                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex">
                   <button
                     onClick={() => setNewDebt({ ...newDebt, type: "owed" })}
                     className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${
                       newDebt.type === "owed"
-                        ? "bg-white text-rose-500 shadow-sm"
-                        : "text-slate-400"
+                        ? "bg-white dark:bg-slate-700 text-rose-500 shadow-sm"
+                        : "text-slate-400 dark:text-slate-500"
                     }`}
                   >
                     I Borrowed
@@ -190,8 +194,8 @@ export default function DebtLedgerPage() {
                     onClick={() => setNewDebt({ ...newDebt, type: "owesMe" })}
                     className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${
                       newDebt.type === "owesMe"
-                        ? "bg-white text-emerald-500 shadow-sm"
-                        : "text-slate-400"
+                        ? "bg-white dark:bg-slate-700 text-emerald-500 shadow-sm"
+                        : "text-slate-400 dark:text-slate-500"
                     }`}
                   >
                     I Lent
@@ -199,10 +203,10 @@ export default function DebtLedgerPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">
                     Debt Category
                   </label>
-                  <div className="grid grid-cols-4 gap-3 bg-slate-50 p-3 rounded-3xl">
+                  <div className="grid grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-3xl">
                     {debtCategories.map((cat) => {
                       const Icon =
                         (Icons as any)[cat.icon] || Icons.MoreHorizontal;
@@ -220,7 +224,7 @@ export default function DebtLedgerPage() {
                               cat.color
                             } w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all ${
                               isSel
-                                ? "ring-4 ring-offset-2 ring-white scale-110 shadow-lg"
+                                ? "ring-4 ring-offset-2 dark:ring-offset-slate-900 ring-white dark:ring-slate-400 scale-110 shadow-lg"
                                 : "opacity-30"
                             }`}
                           >
@@ -228,7 +232,9 @@ export default function DebtLedgerPage() {
                           </div>
                           <span
                             className={`text-[8px] font-bold ${
-                              isSel ? "text-slate-900" : "text-slate-400"
+                              isSel
+                                ? "text-slate-900 dark:text-white"
+                                : "text-slate-400 dark:text-slate-600"
                             }`}
                           >
                             {cat.name}
@@ -247,9 +253,9 @@ export default function DebtLedgerPage() {
                     onChange={(e) =>
                       setNewDebt({ ...newDebt, amount: e.target.value })
                     }
-                    className="w-full bg-slate-50 rounded-2xl py-5 px-8 font-black text-xl text-slate-800 outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 rounded-2xl py-5 px-8 font-black text-xl text-slate-800 dark:text-white outline-none"
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-300">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-300 dark:text-slate-600">
                     ETB
                   </span>
                 </div>
@@ -268,27 +274,27 @@ export default function DebtLedgerPage() {
       {/* --- PAYMENT MODAL --- */}
       <AnimatePresence>
         {paymentTarget && (
-          <div className="fixed inset-0 z-10 flex items-center justify-center p-4 pb-15">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setPaymentTarget(null)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-8 z-10 shadow-2xl text-center"
+              className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 z-10 shadow-2xl text-center border dark:border-slate-800"
             >
-              <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <DollarSign size={32} />
               </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">
                 Record Payment
               </h3>
-              <p className="text-xs font-bold text-slate-400 uppercase mb-6">
+              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-6">
                 Settling: {paymentTarget.name}
               </p>
 
@@ -298,12 +304,12 @@ export default function DebtLedgerPage() {
                 placeholder="Amount Paid"
                 value={payAmt}
                 onChange={(e) => setPayAmt(e.target.value)}
-                className="w-full bg-slate-50 border-none rounded-2xl py-5 text-center text-2xl font-black text-slate-800 mb-6 outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-5 text-center text-2xl font-black text-slate-800 dark:text-white mb-6 outline-none"
               />
               <div className="flex gap-3">
                 <button
                   onClick={() => setPaymentTarget(null)}
-                  className="flex-1 py-4 bg-slate-100 rounded-2xl font-bold text-slate-400"
+                  className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-bold text-slate-400 dark:text-slate-500"
                 >
                   Cancel
                 </button>

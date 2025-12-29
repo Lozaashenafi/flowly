@@ -63,10 +63,8 @@ const Analytics = () => {
     };
   }, [transactions, currentDate]);
 
-  // Budget Data for this week
   const budgetProgress = getWeeklyBudgetProgress();
 
-  // Debt Portfolio (Overall remaining)
   const debtPortfolio = useMemo(() => {
     return debts.reduce(
       (acc, d) => {
@@ -78,7 +76,6 @@ const Analytics = () => {
     );
   }, [debts]);
 
-  // --- Animation Variants ---
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -95,18 +92,18 @@ const Analytics = () => {
 
   if (isLoading)
     return (
-      <div className="p-10 text-center font-bold text-[#477A71]">
+      <div className="p-10 text-center font-bold text-[#477A71] dark:text-[#477A71]/80">
         Loading Analytics...
       </div>
     );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-slate-800 font-sans pb-32 overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans pb-32 overflow-x-hidden transition-colors duration-500">
       <header className="px-6 pt-12 pb-6">
         <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-3xl font-black text-slate-900 tracking-tight"
+          className="text-2xl font-black text-slate-900 dark:text-white tracking-tight"
         >
           Financial <span className="text-[#477A71]">Analytics</span>
         </motion.h1>
@@ -117,7 +114,7 @@ const Analytics = () => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={prevMonth}
-          className="p-2 hover:bg-white rounded-full shadow-sm text-[#477A71] bg-white/50"
+          className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-full shadow-sm text-[#477A71] bg-white/50 dark:bg-slate-900/50"
         >
           <ChevronLeft size={20} />
         </motion.button>
@@ -127,7 +124,7 @@ const Analytics = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="text-lg font-black text-slate-700 uppercase tracking-widest"
+            className="text-lg font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest"
           >
             {format(currentDate, "MMMM yyyy")}
           </motion.span>
@@ -135,7 +132,7 @@ const Analytics = () => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={nextMonth}
-          className="p-2 hover:bg-white rounded-full shadow-sm text-[#477A71] bg-white/50"
+          className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-full shadow-sm text-[#477A71] bg-white/50 dark:bg-slate-900/50"
         >
           <ChevronRight size={20} />
         </motion.button>
@@ -145,20 +142,20 @@ const Analytics = () => {
         <AnimatePresence mode="wait">
           {!stats.hasData && budgetProgress.length === 0 ? (
             <motion.div
-              key="empty-state" // Fixed: Added key
+              key="empty-state"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="flex flex-col items-center justify-center py-20"
             >
-              <BarChart className="w-16 h-16 text-slate-200 mb-4" />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+              <BarChart className="w-16 h-16 text-slate-200 dark:text-slate-800 mb-4" />
+              <p className="text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-xs">
                 No activity found
               </p>
             </motion.div>
           ) : (
             <motion.div
-              key="analytics-content" // Fixed: Added key
+              key="analytics-content"
               variants={containerVariants}
               initial="hidden"
               animate="show"
@@ -166,22 +163,20 @@ const Analytics = () => {
             >
               {/* SECTION 1: CASH FLOW CARDS */}
               <div key="monthly-flow-section" className="space-y-4">
-                {" "}
-                {/* Fixed: Added key */}
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">
                   Monthly Flow
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <motion.div
                     variants={itemVariants}
-                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm"
+                    className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm"
                   >
                     <p className="text-[#477A71] font-black text-[10px] uppercase tracking-widest mb-1">
                       Total Income
                     </p>
-                    <p className="text-3xl font-black text-slate-900">
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">
                       {stats.income.toLocaleString()}{" "}
-                      <span className="text-sm font-bold text-slate-300">
+                      <span className="text-sm font-bold text-slate-300 dark:text-slate-600">
                         ETB
                       </span>
                     </p>
@@ -189,14 +184,14 @@ const Analytics = () => {
 
                   <motion.div
                     variants={itemVariants}
-                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm"
+                    className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm"
                   >
                     <p className="text-[#F0BB40] font-black text-[10px] uppercase tracking-widest mb-1">
                       Total Expenses
                     </p>
-                    <p className="text-3xl font-black text-slate-900">
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">
                       {stats.expense.toLocaleString()}{" "}
-                      <span className="text-sm font-bold text-slate-300">
+                      <span className="text-sm font-bold text-slate-300 dark:text-slate-600">
                         ETB
                       </span>
                     </p>
@@ -204,9 +199,9 @@ const Analytics = () => {
 
                   <motion.div
                     variants={itemVariants}
-                    className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm md:col-span-2"
+                    className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm md:col-span-2"
                   >
-                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">
+                    <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest mb-1">
                       Monthly Balance
                     </p>
                     <p
@@ -216,7 +211,7 @@ const Analytics = () => {
                     >
                       {stats.balance >= 0 ? "+" : "-"}
                       {Math.abs(stats.balance).toLocaleString()}{" "}
-                      <span className="text-sm font-bold opacity-30 text-slate-900">
+                      <span className="text-sm font-bold opacity-30 text-slate-900 dark:text-white">
                         ETB
                       </span>
                     </p>
@@ -227,27 +222,23 @@ const Analytics = () => {
               {/* SECTION 2: BUDGET COMPLIANCE */}
               {budgetProgress.length > 0 && (
                 <div key="budget-pulse-section" className="space-y-4">
-                  {" "}
-                  {/* Fixed: Added key */}
                   <div className="flex items-center gap-2 ml-2">
                     <Target size={14} className="text-[#477A71]" />
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
                       Budget Performance (Weekly)
                     </h3>
                   </div>
                   <motion.div
                     variants={itemVariants}
-                    className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-sm space-y-6"
+                    className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm space-y-6"
                   >
                     {budgetProgress.map((item: any, index: number) => (
                       <div
                         key={item.categoryId || `budget-${index}`}
                         className="space-y-2"
                       >
-                        {" "}
-                        {/* Fixed: Stronger key logic */}
                         <div className="flex justify-between items-end">
-                          <span className="text-sm font-bold text-slate-800">
+                          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                             {item.category}
                           </span>
                           <span
@@ -259,7 +250,7 @@ const Analytics = () => {
                             {Math.round(item.target).toLocaleString()} ETB
                           </span>
                         </div>
-                        <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-slate-50 dark:bg-slate-800 rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${item.percentage}%` }}
@@ -276,44 +267,42 @@ const Analytics = () => {
 
               {/* SECTION 3: DEBT PORTFOLIO */}
               <div key="debt-portfolio-section" className="space-y-4">
-                {" "}
-                {/* Fixed: Added key */}
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">
                   Debt Portfolio (Total)
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <motion.div
                     variants={itemVariants}
-                    className="bg-rose-50/50 p-6 rounded-[2rem] border border-rose-100"
+                    className="bg-rose-50/50 dark:bg-rose-950/20 p-6 rounded-[2rem] border border-rose-100 dark:border-rose-900/30"
                   >
-                    <div className="flex items-center gap-2 mb-2 text-rose-500">
+                    <div className="flex items-center gap-2 mb-2 text-rose-500 dark:text-rose-400">
                       <ArrowUpRight size={14} />
                       <p className="font-black text-[9px] uppercase tracking-widest">
                         I Owe
                       </p>
                     </div>
-                    <p className="text-2xl font-black text-rose-600">
+                    <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
                       {debtPortfolio.totalOwed.toLocaleString()}
                     </p>
-                    <p className="text-[8px] font-bold text-rose-400 uppercase mt-1">
+                    <p className="text-[8px] font-bold text-rose-400 dark:text-rose-500 uppercase mt-1">
                       Current Liabilities
                     </p>
                   </motion.div>
 
                   <motion.div
                     variants={itemVariants}
-                    className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100"
+                    className="bg-emerald-50/50 dark:bg-emerald-950/20 p-6 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30"
                   >
-                    <div className="flex items-center gap-2 mb-2 text-emerald-600">
+                    <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
                       <ArrowDownLeft size={14} />
                       <p className="font-black text-[9px] uppercase tracking-widest">
                         Owes Me
                       </p>
                     </div>
-                    <p className="text-2xl font-black text-emerald-600">
+                    <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                       {debtPortfolio.totalOwesMe.toLocaleString()}
                     </p>
-                    <p className="text-[8px] font-bold text-emerald-400 uppercase mt-1">
+                    <p className="text-[8px] font-bold text-emerald-400 dark:text-emerald-500 uppercase mt-1">
                       Total Assets
                     </p>
                   </motion.div>
