@@ -17,6 +17,11 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useTheme } from "next-themes";
 import logo from "../../../app/logo.png";
 
+// --- ADDED FOR CAPACITOR ---
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { Capacitor } from "@capacitor/core";
+// ---------------------------
+
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -42,6 +47,31 @@ export default function Settings() {
   const [statusMsg, setStatusMsg] = useState("");
 
   useEffect(() => setMounted(true), []);
+
+  // --- ADDED THEME SYNC LOGIC FOR ANDROID STATUS BAR ---
+  useEffect(() => {
+    const updateNativeStatusBar = async () => {
+      // Check if the app is running on a native device (Android/iOS)
+      if (Capacitor.isNativePlatform()) {
+        try {
+          if (resolvedTheme === "dark") {
+            // Dark Mode: Slate background, White icons
+            await StatusBar.setBackgroundColor({ color: "#0f172a" });
+            await StatusBar.setStyle({ style: Style.Light });
+          } else {
+            // Light Mode: Your Green background, White icons
+            await StatusBar.setBackgroundColor({ color: "#f9fafb" });
+            await StatusBar.setStyle({ style: Style.Light });
+          }
+        } catch (e) {
+          console.error("StatusBar error", e);
+        }
+      }
+    };
+
+    updateNativeStatusBar();
+  }, [resolvedTheme]); // This runs every time the theme changes
+  // ----------------------------------------------------
 
   const handleExport = () => {
     const data = {
@@ -77,7 +107,6 @@ export default function Settings() {
     }
   };
 
-  // Prevent hydration UI mismatch
   if (!mounted) return null;
 
   return (
@@ -98,7 +127,6 @@ export default function Settings() {
         animate="visible"
         className="px-4 space-y-6 max-w-5xl mx-auto"
       >
-        {/* APP INFO CARD */}
         <motion.section
           variants={itemVariants}
           className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 text-center border-2 border-slate-50 dark:border-slate-800 shadow-sm"
@@ -130,7 +158,6 @@ export default function Settings() {
           </div>
         </motion.section>
 
-        {/* THEME SWITCHER SECTION (The Toggle Button) */}
         <motion.section variants={itemVariants} className="space-y-3">
           <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Appearance
@@ -169,7 +196,6 @@ export default function Settings() {
           </div>
         </motion.section>
 
-        {/* ACTION BUTTONS */}
         <motion.section variants={containerVariants} className="space-y-4">
           <button
             onClick={() => setModalType("install")}
@@ -224,10 +250,8 @@ export default function Settings() {
         </footer>
       </motion.main>
 
-      {/* POPUPS (Keep your existing AnimatePresence code here) */}
       <AnimatePresence>
         {modalType && (
-          // ... (Your existing modal code from previous response)
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

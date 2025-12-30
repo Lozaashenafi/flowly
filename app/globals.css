@@ -24,3 +24,19 @@
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+:root {
+  /* This ensures the app fills the entire screen including the notch */
+  height: 100vh;
+  height: 100dvh;
+}
+
+body {
+  /* Capacitor automatically handles safe areas if you use these variables */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* If you have a sticky/fixed top bar, apply it there instead: */
+header {
+  padding-top: env(safe-area-inset-top);
+}

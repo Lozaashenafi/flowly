@@ -38,10 +38,18 @@ export const metadata: Metadata = {
       "Track your income and expenses easily. Your data stays on your device, and it works as a PWA!",
     images: ["https://flowly-finance.vercel.app/preview.png"],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent", // This makes the status bar transparent and overlays it on your app
+    title: "Flowly",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#477A71",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "##f9fafb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" }, // slate-950 color
+  ],
   width: "device-width",
   initialScale: 1,
 };
