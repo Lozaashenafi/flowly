@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@next/third-parties": "^16.1.1",
     "@vercel/analytics": "^1.6.1",
     "date-fns": "^4.1.0",
@@ -25,6 +27,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "25.0.3",
     "@types/react": "19.2.7",
