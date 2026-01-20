@@ -5,9 +5,13 @@ import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { Transaction } from "../../domain/entities/Transaction";
 import { TransactionType } from "../../domain/value-objects/TransactionType";
+import { Category } from "../../domain/entities/Category"; // Added
 import { motion, AnimatePresence } from "framer-motion";
 
-type DebtType = "owed" | "owesMe";
+// Import your database logic to get fresh data
+import { IndexedDbCategoryRepository } from "../../infrastructure/repositories/IndexedDbCategoryRepository";
+import { GetCategoriesUseCase } from "../../application/use-cases/GetCategoriesUseCase";
+import { formatEth } from "../../infrastructure/utils/ethiopianDate";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -19,29 +23,52 @@ const staggerContainer = {
   animate: { transition: { staggerChildren: 0.05 } },
 };
 
+// Initialize DB access
+const categoryRepo = new IndexedDbCategoryRepository();
+const getCategoriesUseCase = new GetCategoriesUseCase(categoryRepo);
+
 const AddTransactionPage = () => {
-  const { addTransaction, categories } = useFlowlyContext();
+  const { addTransaction } = useFlowlyContext();
   const router = useRouter();
   const dateInputRef = useRef<HTMLInputElement>(null);
 
+  // Local state for categories to ensure they are fresh
+  const [localCategories, setLocalCategories] = useState<Category[]>([]);
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString());
   const [note, setNote] = useState("");
 
-  const filteredCategories = categories.filter((cat) => {
+  // 1. Fetch fresh categories from DB on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const cats = await getCategoriesUseCase.execute();
+        setLocalCategories(cats);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const filteredCategories = localCategories.filter((cat) => {
     const typeValue =
       typeof cat.type === "object" ? (cat.type as any).value : cat.type;
     return typeValue === type;
   });
 
-  // Auto-select first category when type changes
+  // 2. Auto-select first category when type changes OR when categories finish loading
   useEffect(() => {
-    if (filteredCategories.length > 0) {
+    if (filteredCategories.length > 0 && !category) {
       setCategory(filteredCategories[0].name);
+    } else if (filteredCategories.length > 0) {
+      // If type changed, force reset selection to first item of new type
+      const exists = filteredCategories.find((c) => c.name === category);
+      if (!exists) setCategory(filteredCategories[0].name);
     }
-  }, [type]);
+  }, [type, filteredCategories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,79 +162,77 @@ const AddTransactionPage = () => {
               className="w-full bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 rounded-2xl py-8 pl-14 pr-6 text-4xl font-black text-slate-800 dark:text-white placeholder:text-slate-100 dark:placeholder:text-slate-800 focus:outline-none focus:border-[#477a71]/20 shadow-xl shadow-slate-200/40 dark:shadow-none transition-all"
             />
             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 font-light text-2xl group-focus-within:text-[#477a71] transition-colors">
-              $
+              ETB
             </span>
           </div>
         </motion.div>
 
-        {/* Categories - IMPROVED UI */}
+        {/* Categories Section */}
         <motion.div variants={fadeInUp} className="space-y-4">
           <div className="flex justify-between items-center px-1">
             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               Category
             </label>
           </div>
+
           <div className="grid grid-cols-4 gap-y-6 gap-x-3">
-            {filteredCategories.map((cat) => {
-              const IconComponent =
-                (Icons as any)[cat.icon] ?? Icons.MoreHorizontal;
-              const isSelected = category === cat.name;
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((cat) => {
+                const IconComponent =
+                  (Icons as any)[cat.icon] ?? Icons.MoreHorizontal;
+                const isSelected = category === cat.name;
 
-              return (
-                <motion.button
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.9 }}
-                  key={cat.id}
-                  onClick={() => setCategory(cat.name)}
-                  className="flex flex-col items-center gap-2 group"
-                >
-                  <div
-                    className={`${
-                      cat.color
-                    } w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-300 relative
-                    ${
-                      isSelected
-                        ? "ring-4 ring-[#477A71] ring-offset-4 dark:ring-offset-slate-950 scale-105 shadow-lg"
-                        : "opacity-80 grayscale-[20%] border-2 border-transparent hover:grayscale-0 hover:opacity-100"
-                    }
-                    bg-white dark:bg-slate-800 p-1 shadow-sm`}
+                return (
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.9 }}
+                    key={cat.id}
+                    onClick={() => setCategory(cat.name)}
+                    className="flex flex-col items-center gap-2 group"
                   >
-                    {/* The icon tile */}
                     <div
-                      className={`w-full h-full rounded-[20px] flex items-center justify-center ${cat.color} text-white`}
+                      className={`${cat.color} w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-300 relative
+                        ${
+                          isSelected
+                            ? "ring-4 ring-[#477A71] ring-offset-4 dark:ring-offset-slate-950 scale-105 shadow-lg"
+                            : "opacity-80 grayscale-[20%] border-2 border-transparent hover:grayscale-0 hover:opacity-100"
+                        } shadow-sm`}
                     >
-                      <IconComponent size={24} strokeWidth={2.5} />
-                    </div>
+                      <div
+                        className={`w-full h-full rounded-[20px] flex items-center justify-center ${cat.color} text-white`}
+                      >
+                        <IconComponent size={24} strokeWidth={2.5} />
+                      </div>
 
-                    {/* Active Indicator */}
-                    <AnimatePresence>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 bg-[#477A71] text-white rounded-full p-1 border-2 border-white dark:border-slate-950"
-                        >
-                          <Icons.Check size={10} strokeWidth={4} />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold transition-colors ${
-                      isSelected
-                        ? "text-slate-900 dark:text-white"
-                        : "text-slate-400 dark:text-slate-600 group-hover:text-slate-500"
-                    }`}
-                  >
-                    {cat.name}
-                  </span>
-                </motion.button>
-              );
-            })}
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1 -right-1 bg-[#477A71] text-white rounded-full p-1 border-2 border-white dark:border-slate-950"
+                          >
+                            <Icons.Check size={10} strokeWidth={4} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold transition-colors ${isSelected ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-600"}`}
+                    >
+                      {cat.name}
+                    </span>
+                  </motion.button>
+                );
+              })
+            ) : (
+              <div className="col-span-4 py-8 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                No Categories Found
+              </div>
+            )}
           </div>
         </motion.div>
 
-        {/* Form Controls */}
+        {/* Date and Note Controls */}
         <motion.div variants={fadeInUp} className="space-y-3">
           <button
             type="button"
@@ -218,14 +243,12 @@ const AddTransactionPage = () => {
               <Icons.Calendar size={18} className="text-[#477A71]" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
-                Date & Time
+              <span className="text-[9px] font-black text-slate-300 uppercase">
+                Ethiopian Date
               </span>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                {new Date(date).toLocaleString([], {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
+              <span className="text-sm font-bold text-slate-700">
+                {formatEth(date)}
+                {/* Shows: "Tir 12, 2016" while they pick */}
               </span>
             </div>
             <input
@@ -264,7 +287,7 @@ const AddTransactionPage = () => {
           className={`w-full py-5 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] text-white shadow-2xl transition-all disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-300 dark:disabled:text-slate-700 disabled:shadow-none ${
             type === "income"
               ? "bg-[#477A71] shadow-[#477A71]/40"
-              : "bg-[#F0BB40] shadow-[#F0BB40]/40 dark:shadow-none"
+              : "bg-[#F0BB40] shadow-[#F0BB40]/40"
           }`}
         >
           Confirm {type}

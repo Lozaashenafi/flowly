@@ -114,7 +114,7 @@ export default function CategoriesPage() {
   };
 
   const filteredCategories = categories.filter(
-    (cat) => cat.type.value === activeTab
+    (cat) => cat.type.value === activeTab,
   );
 
   const openCreateModal = () => {
@@ -137,10 +137,12 @@ export default function CategoriesPage() {
 
   const handleSave = async () => {
     if (!editingCategory || !editingCategory.name?.trim()) return;
+
     const iconName =
-      editingCategory.iconComponent?.displayName ||
+      (editingCategory.iconComponent as any)?.displayName ||
       editingCategory.icon ||
       "MoreHorizontal";
+
     const savedCategory: Category = {
       id: editingCategory.id || crypto.randomUUID(),
       name: editingCategory.name.trim(),
@@ -149,21 +151,42 @@ export default function CategoriesPage() {
       color: editingCategory.color || "bg-slate-500",
       createdAt: editingCategory.createdAt || Date.now(),
     };
-    if (editingCategory.id) {
-      await updateCategoryUseCase.execute(savedCategory);
-    } else {
-      await addCategoryUseCase.execute(savedCategory);
+
+    try {
+      if (editingCategory.id) {
+        // UPDATE DB
+        await updateCategoryUseCase.execute(savedCategory);
+        // UPDATE LOCAL STATE IMMEDIATELY
+        setCategories((prev) =>
+          prev.map((c) => (c.id === savedCategory.id ? savedCategory : c)),
+        );
+      } else {
+        // ADD DB
+        await addCategoryUseCase.execute(savedCategory);
+        // UPDATE LOCAL STATE IMMEDIATELY
+        setCategories((prev) => [...prev, savedCategory]);
+      }
+
+      setIsModalOpen(false);
+      setEditingCategory(null);
+    } catch (err) {
+      console.error("Save failed", err);
     }
-    await loadCategories();
-    setIsModalOpen(false);
-    setEditingCategory(null);
   };
 
   const confirmDelete = async () => {
     if (!deleteConfirmCategory) return;
-    await deleteCategoryUseCase.execute(deleteConfirmCategory);
-    await loadCategories();
-    setDeleteConfirmCategory(null);
+    try {
+      // DELETE DB
+      await deleteCategoryUseCase.execute(deleteConfirmCategory);
+      // UPDATE LOCAL STATE IMMEDIATELY
+      setCategories((prev) =>
+        prev.filter((c) => c.id !== deleteConfirmCategory.id),
+      );
+      setDeleteConfirmCategory(null);
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   return (
@@ -207,8 +230,8 @@ export default function CategoriesPage() {
                     tab === "income"
                       ? "bg-[#477A71]"
                       : tab === "expense"
-                      ? "bg-[#F0BB40]"
-                      : "bg-slate-800"
+                        ? "bg-[#F0BB40]"
+                        : "bg-slate-800"
                   }`}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
@@ -223,28 +246,26 @@ export default function CategoriesPage() {
         <AnimatePresence mode="popLayout">
           {filteredCategories.length === 0 ? (
             <motion.div
+              key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border-2 border-dashed border-gray-100 dark:border-slate-800"
             >
               <p className="text-gray-400 dark:text-slate-600 font-bold uppercase text-[10px] tracking-widest">
-                Empty State
+                No Categories
               </p>
             </motion.div>
           ) : (
-            filteredCategories.map((cat, idx) => {
+            filteredCategories.map((cat) => {
               const IconComponent = ICON_MAP[cat.icon] || MoreHorizontal;
               return (
                 <motion.div
                   key={cat.id}
                   layout
-                  variants={{
-                    hidden: { opacity: 0, x: 20 },
-                    show: { opacity: 1, x: 0 },
-                  }}
-                  initial="hidden"
-                  animate="show"
-                  className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 flex items-center justify-between shadow-sm transition-colors"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 flex items-center justify-between shadow-sm"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -282,10 +303,10 @@ export default function CategoriesPage() {
         </AnimatePresence>
       </div>
 
-      {/* CREATE/EDIT MODAL - CENTERED FOR KEYBOARD FIX */}
+      {/* MODAL */}
       <AnimatePresence>
         {isModalOpen && editingCategory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -318,7 +339,7 @@ export default function CategoriesPage() {
                       Name
                     </label>
                     <input
-                      autoFocus // Keyboard opens automatically
+                      autoFocus
                       type="text"
                       value={editingCategory.name || ""}
                       onChange={(e) =>
@@ -392,7 +413,7 @@ export default function CategoriesPage() {
                     </button>
                     <button
                       onClick={handleSave}
-                      className="flex-1 py-4 rounded-2xl font-bold text-white bg-[#477A71] shadow-lg shadow-[#477A71]/20"
+                      className="flex-1 py-4 rounded-2xl font-bold text-white bg-[#477A71] shadow-lg"
                     >
                       Save
                     </button>
@@ -404,7 +425,7 @@ export default function CategoriesPage() {
         )}
       </AnimatePresence>
 
-      {/* DELETE CONFIRMATION */}
+      {/* DELETE MODAL */}
       <AnimatePresence>
         {deleteConfirmCategory && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -439,7 +460,7 @@ export default function CategoriesPage() {
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-200 dark:shadow-none"
+                  className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl shadow-lg"
                 >
                   Delete
                 </button>

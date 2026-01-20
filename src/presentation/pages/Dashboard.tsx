@@ -1,38 +1,81 @@
 "use client";
-import React, { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
   CreditCard,
   Wallet,
   Target,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
-import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  formatEth,
+  toEthiopian,
+} from "../../infrastructure/utils/ethiopianDate";
 
 const Dashboard = () => {
   const router = useRouter();
-  const { transactions, getMonthlyStats } = useFlowlyContext();
+  const [mounted, setMounted] = useState(false);
+  const { transactions } = useFlowlyContext();
+  const [showBalance, setShowBalance] = useState(false);
 
+  // 1. Move useEffect to the top
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 2. Calculate Stats
   const stats = useMemo(() => {
-    const now = new Date();
-    return getMonthlyStats(now.getFullYear(), now.getMonth());
-  }, [transactions, getMonthlyStats]);
+    const nowEth = toEthiopian(new Date());
 
+    const monthTransactions = transactions.filter((t) => {
+      const txEth = toEthiopian(t.date);
+      return txEth.year === nowEth.year && txEth.month === nowEth.month;
+    });
+
+    const totals = monthTransactions.reduce(
+      (acc, t) => {
+        const type =
+          typeof t.type === "string" ? t.type : (t.type as any).value;
+        if (type === "income") acc.income += t.amount;
+        else if (type === "expense") acc.expense += t.amount;
+        return acc;
+      },
+      { income: 0, expense: 0 },
+    );
+
+    return {
+      totalIncome: totals.income,
+      totalExpenses: totals.expense,
+      balance: totals.income - totals.expense,
+    };
+  }, [transactions]);
+
+  // 3. Define other memos before any returns
   const recentTransactions = useMemo(() => {
     return transactions.slice(0, 4);
   }, [transactions]);
 
+  // 4. NOW handle the loading state
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-950">
+        <p className="text-[#477A71] font-bold animate-pulse">
+          Loading Dashboard...
+        </p>
+      </div>
+    );
+  }
+
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
   const itemVariants = {
@@ -58,21 +101,23 @@ const Dashboard = () => {
           variants={itemVariants}
           className="relative overflow-hidden rounded-3xl bg-[#477A71] p-5 sm:p-6 text-white shadow-lg"
         >
-          <div className="flex items-center gap-2 mb-3 opacity-90">
-            <Wallet size={20} className="text-[#F0BB40]" />
-            <span className="text-sm sm:text-base font-medium">
-              Current Balance
-            </span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 opacity-90">
+              <Wallet size={20} className="text-[#F0BB40]" />
+              <span className="text-sm sm:text-base font-medium">
+                Current Balance
+              </span>
+            </div>
+            <button
+              onClick={() => setShowBalance(!showBalance)}
+              className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"
+            >
+              {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
-          <motion.h2
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1 }}
-            className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8"
-          >
-            {stats.balance.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            })}{" "}
-            ETB
+
+          <motion.h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8">
+            {showBalance ? `${stats.balance.toLocaleString()} ETB` : "••••••••"}
           </motion.h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -84,7 +129,9 @@ const Dashboard = () => {
                 </span>
               </div>
               <p className="text-lg sm:text-xl font-semibold">
-                {stats.totalIncome.toLocaleString()} ETB
+                {showBalance
+                  ? `${stats.totalIncome.toLocaleString()} ETB`
+                  : "••••"}
               </p>
             </div>
             <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
@@ -95,20 +142,15 @@ const Dashboard = () => {
                 </span>
               </div>
               <p className="text-lg sm:text-xl font-semibold">
-                {stats.totalExpenses.toLocaleString()} ETB
+                {showBalance
+                  ? `${stats.totalExpenses.toLocaleString()} ETB`
+                  : "••••"}
               </p>
             </div>
           </div>
-
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-            transition={{ duration: 8, repeat: Infinity }}
-            className="absolute -top-12 -right-12 w-40 h-40 sm:w-48 sm:h-48 bg-[#F0BB40]/20 rounded-full blur-3xl"
-          ></motion.div>
-          <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-[#F0BB40]/10 rounded-full blur-3xl"></div>
         </motion.section>
 
-        {/* Quick Add Section */}
+        {/* Quick Actions */}
         <motion.section variants={itemVariants} className="px-2">
           <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">
             Quick Actions
@@ -119,32 +161,24 @@ const Dashboard = () => {
                 label: "Income",
                 icon: TrendingUp,
                 color: "bg-[#477A71]",
-                iconCol: "text-[#F0BB40]",
-                textCol: "text-white",
                 path: "/add",
               },
               {
                 label: "Expense",
                 icon: TrendingDown,
                 color: "bg-[#F0BB40]",
-                iconCol: "text-[#477A71]",
-                textCol: "text-[#477A71]",
                 path: "/add",
               },
               {
                 label: "Debt",
                 icon: CreditCard,
                 color: "bg-[#477A71]",
-                iconCol: "text-[#F0BB40]",
-                textCol: "text-white",
                 path: "/debt",
               },
               {
                 label: "Budget",
                 icon: Target,
                 color: "bg-[#F0BB40]",
-                iconCol: "text-[#477A71]",
-                textCol: "text-[#477A71]",
                 path: "/budget",
               },
             ].map((btn, idx) => (
@@ -153,10 +187,10 @@ const Dashboard = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push(btn.path)}
-                className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-6 rounded-2xl ${btn.color} ${btn.textCol} shadow-sm transition-colors`}
+                className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-6 rounded-2xl ${btn.color} shadow-sm`}
               >
-                <btn.icon className={`size-5 sm:size-7 ${btn.iconCol}`} />
-                <span className="text-[10px] sm:text-xs font-bold">
+                <btn.icon className="size-5 sm:size-7 text-white/80" />
+                <span className="text-[10px] sm:text-xs font-bold text-white">
                   {btn.label}
                 </span>
               </motion.button>
@@ -164,7 +198,7 @@ const Dashboard = () => {
           </div>
         </motion.section>
 
-        {/* Recent Transactions Section */}
+        {/* Recent Transactions */}
         <motion.section variants={itemVariants} className="px-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
@@ -172,117 +206,43 @@ const Dashboard = () => {
             </h3>
             <button
               onClick={() => router.push("/transactions")}
-              className="text-xs font-bold text-[#477A71] dark:text-[#5fa195] hover:underline transition-all"
+              className="text-xs font-bold text-[#477A71]"
             >
               View All
             </button>
           </div>
 
-          <AnimatePresence mode="wait">
-            {transactions.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm border border-gray-200 dark:border-slate-800 w-full"
-              >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#F0BB40]/10 rounded-full flex items-center justify-center mb-5">
-                  <div className="rotate-12 bg-[#477A71] p-2 rounded text-white text-2xl">
-                    <Wallet size={28} />
-                  </div>
-                </div>
-                <h4 className="font-bold text-gray-800 dark:text-white text-lg mb-2">
-                  No transactions yet
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-slate-400 mb-6 max-w-xs">
-                  Start tracking your income and expenses to see them here.
-                </p>
-                <button
-                  onClick={() => router.push("/add")}
-                  className="bg-[#477A71] text-white px-8 py-3 rounded-2xl font-semibold text-sm shadow-md hover:bg-[#3a615a] transition-colors"
-                >
-                  Add Transaction
-                </button>
-              </motion.div>
+          <div className="space-y-3">
+            {recentTransactions.length === 0 ? (
+              <p className="text-center text-slate-400 py-10">
+                No transactions yet
+              </p>
             ) : (
-              <motion.div key="list" className="space-y-3">
-                {recentTransactions.map((tx, idx) => {
-                  const txType =
-                    typeof tx.type === "string"
-                      ? tx.type
-                      : (tx.type as any).value;
-                  return (
-                    <motion.div
-                      key={tx.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{
-                        opacity: 1,
-                        x: 0,
-                        transition: { delay: idx * 0.05 },
-                      }}
-                      className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex justify-between items-center"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            txType === "income"
-                              ? "bg-[#477A71]/10 text-[#477A71]"
-                              : txType === "debt"
-                              ? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                              : "bg-[#F0BB40]/10 text-[#F0BB40]"
-                          }`}
-                        >
-                          {txType === "income" ? (
-                            <TrendingUp size={18} />
-                          ) : txType === "debt" ? (
-                            <CreditCard size={18} />
-                          ) : (
-                            <TrendingDown size={18} />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            {tx.category}
-                            {txType === "debt" && (
-                              <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400">
-                                {(tx as any).debtType === "owed"
-                                  ? "Owed"
-                                  : "Owes Me"}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                            {format(new Date(tx.date), "MMM dd, yyyy")}
-                          </p>
-                          {tx.note && (
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium italic">
-                              {tx.note}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <p
-                        className={`font-bold ${
-                          txType === "income" ||
-                          (txType === "debt" &&
-                            (tx as any).debtType === "owesMe")
-                            ? "text-[#477A71]"
-                            : "text-[#F0BB40]"
-                        }`}
-                      >
-                        {txType === "income" ||
-                        (txType === "debt" && (tx as any).debtType === "owesMe")
-                          ? "+"
-                          : "-"}
-                        {tx.amount.toLocaleString()} ETB
+              recentTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex justify-between items-center"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <Wallet size={18} className="text-[#477A71]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">{tx.category}</p>
+                      <p className="text-[10px] text-slate-400">
+                        {formatEth(tx.date)}
                       </p>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+                    </div>
+                  </div>
+                  <p className="font-bold text-slate-800 dark:text-white">
+                    {showBalance
+                      ? `${tx.amount.toLocaleString()} ETB`
+                      : "••••••"}
+                  </p>
+                </div>
+              ))
             )}
-          </AnimatePresence>
+          </div>
         </motion.section>
       </motion.main>
     </div>

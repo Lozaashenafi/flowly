@@ -19,6 +19,7 @@ import { Category } from "../../domain/entities/Category";
 import { Budget } from "../../domain/entities/Budget";
 import { Debt } from "../../domain/entities/Debt";
 import { defaultCategories } from "../../data/defaultCategories";
+import { toEthiopian } from "../../infrastructure/utils/ethiopianDate";
 
 interface FlowlyContextType {
   transactions: Transaction[];
@@ -44,12 +45,12 @@ interface FlowlyContextType {
   addDebtPayment: (
     debtId: string,
     amount: number,
-    note?: string
+    note?: string,
   ) => Promise<void>;
   // Stats
   getMonthlyStats: (
     year: number,
-    month: number
+    month: number,
   ) => {
     totalIncome: number;
     totalExpenses: number;
@@ -60,7 +61,7 @@ interface FlowlyContextType {
 }
 
 export const FlowlyContext = createContext<FlowlyContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function FlowlyProvider({ children }: { children: React.ReactNode }) {
@@ -82,8 +83,8 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
     const txs = await db.getAll("transactions");
     setTransactions(
       txs.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      )
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
     );
 
     // Refresh Categories
@@ -124,7 +125,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.add("transactions", newTx);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const updateTransaction = useCallback(
@@ -133,7 +134,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.put("transactions", txData);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const deleteTransaction = useCallback(
@@ -142,7 +143,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.delete("transactions", id);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const getTransaction = useCallback(async (id: string) => {
@@ -158,7 +159,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.add("categories", catData);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   // --- BUDGET ACTIONS ---
@@ -170,7 +171,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.put("budgets", { ...budgetData, id });
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const updateBudget = useCallback(
@@ -179,7 +180,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.put("budgets", budgetData);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const getWeeklyBudgetProgress = useCallback(() => {
@@ -231,7 +232,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       });
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const updateDebt = useCallback(
@@ -240,7 +241,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.put("debts", debtData);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const deleteDebt = useCallback(
@@ -249,7 +250,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.delete("debts", id);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   const addDebtPayment = useCallback(
@@ -281,16 +282,15 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
       await db.add("transactions", paymentTx);
       await refreshAll();
     },
-    [refreshAll]
+    [refreshAll],
   );
 
   // --- STATS ---
-
   const getMonthlyStats = useCallback(
-    (year: number, month: number) => {
+    (ethYear: number, ethMonth: number) => {
       const filtered = transactions.filter((t) => {
-        const d = new Date(t.date);
-        return d.getFullYear() === year && d.getMonth() === month;
+        const ethTx = toEthiopian(t.date); // Use the helper
+        return ethTx.year === ethYear && ethTx.month === ethMonth;
       });
 
       const getTypeValue = (t: Transaction) =>
@@ -331,7 +331,7 @@ export function FlowlyProvider({ children }: { children: React.ReactNode }) {
         totalDebtOwesMe: debtOwesMe,
       };
     },
-    [transactions]
+    [transactions],
   );
 
   return (

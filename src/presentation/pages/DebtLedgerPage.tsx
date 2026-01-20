@@ -15,15 +15,14 @@ export default function DebtLedgerPage() {
     name: "",
     amount: "",
     type: "owed",
+    note: "",
   });
   const [payAmt, setPayAmt] = useState("");
 
   const debtCategories = categories.filter(
-    (c) => (typeof c.type === "string" ? c.type : c.type.value) === "debt"
+    (c) => (typeof c.type === "string" ? c.type : c.type.value) === "debt",
   );
 
-  // --- DEFAULT CATEGORY LOGIC ---
-  // When the modal opens, automatically select the first category
   useEffect(() => {
     if (isAddOpen && debtCategories.length > 0 && !newDebt.name) {
       setNewDebt((prev) => ({ ...prev, name: debtCategories[0].name }));
@@ -40,6 +39,7 @@ export default function DebtLedgerPage() {
       totalAmount: parsedAmount,
       remainingAmount: parsedAmount,
       type: newDebt.type as any,
+      note: newDebt.note,
       createdAt: Date.now(),
       isClosed: false,
     });
@@ -51,12 +51,12 @@ export default function DebtLedgerPage() {
       debtType: newDebt.type,
       amount: parsedAmount,
       category: newDebt.name,
-      note: `Initial record: ${newDebt.name}`,
+      note: `Initial record: ${newDebt.note || newDebt.name}`,
       date: new Date().toISOString(),
       createdAt: Date.now(),
     });
 
-    setNewDebt({ name: "", amount: "", type: "owed" });
+    setNewDebt({ name: "", amount: "", type: "owed", note: "" });
     setIsAddOpen(false);
   };
 
@@ -114,6 +114,11 @@ export default function DebtLedgerPage() {
                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                       {debt.type === "owed" ? "I borrowed" : "I lent"}
                     </p>
+                    {debt.note && (
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 italic mb-1">
+                        "{debt.note}"
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
@@ -242,6 +247,21 @@ export default function DebtLedgerPage() {
                         </button>
                       );
                     })}
+                  </div>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      placeholder="What is this for? (Optional note)"
+                      value={newDebt.note}
+                      onChange={(e) =>
+                        setNewDebt({ ...newDebt, note: e.target.value })
+                      }
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent focus:border-[#477A71]/30 rounded-2xl py-4 px-12 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none transition-all"
+                    />
+                    <Icons.Edit3
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 group-focus-within:text-[#F0BB40] transition-colors"
+                    />
                   </div>
                 </div>
 

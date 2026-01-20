@@ -7,6 +7,7 @@ export interface Debt {
   remainingAmount: number;
   dueDate?: string;
   type: DebtType;
+  note?: string;
   createdAt: number;
   isClosed: boolean;
 }
