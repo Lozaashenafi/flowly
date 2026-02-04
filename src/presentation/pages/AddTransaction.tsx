@@ -168,9 +168,6 @@ const AddTransactionPage = () => {
               onChange={(e) => setAmount(e.target.value)}
               className="w-full bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 rounded-2xl py-8 pl-14 pr-6 text-4xl font-black text-slate-800 dark:text-white placeholder:text-slate-100 dark:placeholder:text-slate-800 focus:outline-none focus:border-[#477a71]/20 shadow-xl shadow-slate-200/40 dark:shadow-none transition-all"
             />
-            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 font-light text-2xl group-focus-within:text-[#477a71] transition-colors">
-              ETB
-            </span>
           </div>
         </motion.div>
 

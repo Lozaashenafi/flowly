@@ -1,5 +1,7 @@
-// app/manifest.ts
 import { MetadataRoute } from "next";
+
+// This line is MANDATORY for 'output: export'
+export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -12,12 +14,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#477A71",
     icons: [
       {
-        src: "../public/icon-192.png",
+        src: "/icon-192.png", // Corrected: removed ../public
         sizes: "192x192",
         type: "image/png",
       },
       {
-        src: "../public/icon-512.png",
+        src: "/icon-512.png", // Corrected: removed ../public
         sizes: "512x512",
         type: "image/png",
       },
