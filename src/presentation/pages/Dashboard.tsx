@@ -29,30 +29,55 @@ const Dashboard = () => {
     setMounted(true);
   }, []);
 
-  // 2. Calculate Stats
   const stats = useMemo(() => {
     const nowEth = toEthiopian(new Date());
 
-    const monthTransactions = transactions.filter((t) => {
+    let allTimeBalance = 0;
+    let yearlyIncome = 0;
+    let yearlyExpense = 0;
+
+    transactions.forEach((t) => {
       const txEth = toEthiopian(t.date);
-      return txEth.year === nowEth.year && txEth.month === nowEth.month;
+
+      // Handle Value Objects (checking if it's a string or an object with .value)
+      const type = typeof t.type === "string" ? t.type : (t.type as any).value;
+      const dType = t.debtType
+        ? typeof t.debtType === "string"
+          ? t.debtType
+          : (t.debtType as any).value
+        : null;
+
+      const amount = t.amount;
+
+      // --- 1. ALL-TIME BALANCE (Cash on Hand) ---
+      if (type === "income") {
+        allTimeBalance += amount;
+      } else if (type === "expense") {
+        allTimeBalance -= amount;
+      } else if (type === "debt") {
+        if (dType === "owed") {
+          // You borrowed money: Cash in pocket increases
+          allTimeBalance += amount;
+        } else if (dType === "owesMe") {
+          // You lent money: Cash in pocket decreases
+          allTimeBalance -= amount;
+        }
+      }
+
+      // --- 2. YEARLY TOTALS (Current Ethiopian Year) ---
+      if (txEth.year === nowEth.year) {
+        if (type === "income") {
+          yearlyIncome += amount;
+        } else if (type === "expense") {
+          yearlyExpense += amount;
+        }
+      }
     });
 
-    const totals = monthTransactions.reduce(
-      (acc, t) => {
-        const type =
-          typeof t.type === "string" ? t.type : (t.type as any).value;
-        if (type === "income") acc.income += t.amount;
-        else if (type === "expense") acc.expense += t.amount;
-        return acc;
-      },
-      { income: 0, expense: 0 },
-    );
-
     return {
-      totalIncome: totals.income,
-      totalExpenses: totals.expense,
-      balance: totals.income - totals.expense,
+      totalIncome: yearlyIncome,
+      totalExpenses: yearlyExpense,
+      balance: allTimeBalance,
     };
   }, [transactions]);
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
@@ -11,7 +11,12 @@ import { motion, AnimatePresence } from "framer-motion";
 // Import your database logic to get fresh data
 import { IndexedDbCategoryRepository } from "../../infrastructure/repositories/IndexedDbCategoryRepository";
 import { GetCategoriesUseCase } from "../../application/use-cases/GetCategoriesUseCase";
-import { formatEth } from "../../infrastructure/utils/ethiopianDate";
+import {
+  formatEth,
+  toEthiopian,
+  fromEthiopian,
+  ETHIOPIAN_MONTHS,
+} from "../../infrastructure/utils/ethiopianDate";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -30,17 +35,30 @@ const getCategoriesUseCase = new GetCategoriesUseCase(categoryRepo);
 const AddTransactionPage = () => {
   const { addTransaction } = useFlowlyContext();
   const router = useRouter();
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
-  // Local state for categories to ensure they are fresh
+  // State
   const [localCategories, setLocalCategories] = useState<Category[]>([]);
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState(new Date().toISOString());
   const [note, setNote] = useState("");
 
-  // 1. Fetch fresh categories from DB on mount
+  // Ethiopian Date State
+  const todayEth = useMemo(() => toEthiopian(new Date()), []);
+  const [ethYear, setEthYear] = useState(todayEth.year);
+  const [ethMonth, setEthMonth] = useState(todayEth.month);
+  const [ethDay, setEthDay] = useState(todayEth.day);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Computed Gregorian Date for saving
+  const selectedDateISO = useMemo(() => {
+    return fromEthiopian(ethYear, ethMonth, ethDay).toISOString();
+  }, [ethYear, ethMonth, ethDay]);
+  const filteredCategories = localCategories.filter((cat) => {
+    const typeValue =
+      typeof cat.type === "object" ? (cat.type as any).value : cat.type;
+    return typeValue === type;
+  });
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -52,13 +70,6 @@ const AddTransactionPage = () => {
     };
     fetchCategories();
   }, []);
-
-  const filteredCategories = localCategories.filter((cat) => {
-    const typeValue =
-      typeof cat.type === "object" ? (cat.type as any).value : cat.type;
-    return typeValue === type;
-  });
-
   // 2. Auto-select first category when type changes OR when categories finish loading
   useEffect(() => {
     if (filteredCategories.length > 0 && !category) {
@@ -81,16 +92,12 @@ const AddTransactionPage = () => {
       amount: parsedAmount,
       category,
       note: note || undefined,
-      date,
+      date: selectedDateISO, // Saved as standard ISO
       createdAt: Date.now(),
     };
 
-    try {
-      await addTransaction(newTx);
-      router.push("/");
-    } catch (error) {
-      console.error("Error adding transaction:", error);
-    }
+    await addTransaction(newTx);
+    router.push("/");
   };
 
   const toLocalDateTimeString = (isoString: string): string => {
@@ -232,12 +239,12 @@ const AddTransactionPage = () => {
           </div>
         </motion.div>
 
-        {/* Date and Note Controls */}
-        <motion.div variants={fadeInUp} className="space-y-3">
+        {/* Date Display Button */}
+        <motion.div className="px-5 space-y-3">
           <button
             type="button"
-            onClick={() => dateInputRef.current?.showPicker()}
-            className="w-full flex items-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[22px] p-4 shadow-sm active:scale-[0.98] transition-all"
+            onClick={() => setShowDatePicker(true)}
+            className="w-full flex items-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[22px] p-4 shadow-sm"
           >
             <div className="bg-[#477A71]/10 p-2.5 rounded-xl mr-4">
               <Icons.Calendar size={18} className="text-[#477A71]" />
@@ -246,38 +253,102 @@ const AddTransactionPage = () => {
               <span className="text-[9px] font-black text-slate-300 uppercase">
                 Ethiopian Date
               </span>
-              <span className="text-sm font-bold text-slate-700">
-                {formatEth(date)}
-                {/* Shows: "Tir 12, 2016" while they pick */}
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                {ETHIOPIAN_MONTHS[ethMonth - 1]} {ethDay}, {ethYear}
               </span>
             </div>
-            <input
-              ref={dateInputRef}
-              type="datetime-local"
-              value={toLocalDateTimeString(date)}
-              onChange={(e) =>
-                e.target.value &&
-                setDate(new Date(e.target.value).toISOString())
-              }
-              className="absolute opacity-0 w-0 h-0"
-            />
           </button>
-
-          <div className="relative group">
-            <input
-              type="text"
-              placeholder="Add a note..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[22px] p-4 pl-12 text-sm font-bold text-slate-700 dark:text-slate-300 focus:border-[#477a71]/30 focus:outline-none shadow-sm transition-all"
-            />
-            <Icons.Edit3
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 group-focus-within:text-[#F0BB40] transition-colors"
-            />
-          </div>
         </motion.div>
+        <AnimatePresence>
+          {showDatePicker && (
+            <div className="fixed inset-0 z-50 flex items-center sm:items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowDatePicker(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              />
 
+              <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 100, opacity: 0 }}
+                className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-black text-lg text-[#477A71]">
+                      Select Date
+                    </h3>
+                    <div className="flex gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                      <button
+                        onClick={() => setEthYear((y) => y - 1)}
+                        className="p-1"
+                      >
+                        <Icons.ChevronLeft size={16} />
+                      </button>
+                      <span className="text-sm font-bold px-2">{ethYear}</span>
+                      <button
+                        onClick={() => setEthYear((y) => y + 1)}
+                        className="p-1"
+                      >
+                        <Icons.ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Months Horizontal Scroll */}
+                  <div className="flex overflow-x-auto gap-2 pb-4 no-scrollbar">
+                    {ETHIOPIAN_MONTHS.map((m, idx) => (
+                      <button
+                        key={m}
+                        onClick={() => setEthMonth(idx + 1)}
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                          ethMonth === idx + 1
+                            ? "bg-[#477A71] text-white"
+                            : "bg-slate-50 dark:bg-slate-800 text-slate-400"
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Days Grid */}
+                  <div className="grid grid-cols-6 gap-2 mt-4">
+                    {Array.from({
+                      length:
+                        ethMonth === 13 ? (ethYear % 4 === 3 ? 6 : 5) : 30,
+                    }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setEthDay(i + 1);
+                          setShowDatePicker(false);
+                        }}
+                        className={`aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
+                          ethDay === i + 1
+                            ? "bg-[#F0BB40] text-white"
+                            : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="w-full mt-6 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                  >
+                    Done
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
         {/* Submit Button */}
         <motion.button
           variants={fadeInUp}
