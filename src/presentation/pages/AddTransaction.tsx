@@ -1,23 +1,23 @@
 "use client";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { Transaction } from "../../domain/entities/Transaction";
 import { TransactionType } from "../../domain/value-objects/TransactionType";
-import { Category } from "../../domain/entities/Category"; // Added
+import { Category } from "../../domain/entities/Category";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Import your database logic to get fresh data
+// Infrastructure / Utils
 import { IndexedDbCategoryRepository } from "../../infrastructure/repositories/IndexedDbCategoryRepository";
 import { GetCategoriesUseCase } from "../../application/use-cases/GetCategoriesUseCase";
 import {
-  formatEth,
   toEthiopian,
   fromEthiopian,
   ETHIOPIAN_MONTHS,
 } from "../../infrastructure/utils/ethiopianDate";
 
+// Animation Variants
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -36,7 +36,7 @@ const AddTransactionPage = () => {
   const { addTransaction } = useFlowlyContext();
   const router = useRouter();
 
-  // State
+  // Form State
   const [localCategories, setLocalCategories] = useState<Category[]>([]);
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
@@ -54,11 +54,15 @@ const AddTransactionPage = () => {
   const selectedDateISO = useMemo(() => {
     return fromEthiopian(ethYear, ethMonth, ethDay).toISOString();
   }, [ethYear, ethMonth, ethDay]);
+
+  // Filter categories based on transaction type
   const filteredCategories = localCategories.filter((cat) => {
     const typeValue =
       typeof cat.type === "object" ? (cat.type as any).value : cat.type;
     return typeValue === type;
   });
+
+  // Fetch Categories from DB
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -70,16 +74,14 @@ const AddTransactionPage = () => {
     };
     fetchCategories();
   }, []);
-  // 2. Auto-select first category when type changes OR when categories finish loading
+
+  // Auto-select first category when type changes
   useEffect(() => {
-    if (filteredCategories.length > 0 && !category) {
-      setCategory(filteredCategories[0].name);
-    } else if (filteredCategories.length > 0) {
-      // If type changed, force reset selection to first item of new type
+    if (filteredCategories.length > 0) {
       const exists = filteredCategories.find((c) => c.name === category);
       if (!exists) setCategory(filteredCategories[0].name);
     }
-  }, [type, filteredCategories]);
+  }, [type, filteredCategories, category]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,8 +93,8 @@ const AddTransactionPage = () => {
       type,
       amount: parsedAmount,
       category,
-      note: note || undefined,
-      date: selectedDateISO, // Saved as standard ISO
+      note: note.trim() || undefined,
+      date: selectedDateISO,
       createdAt: Date.now(),
     };
 
@@ -100,15 +102,9 @@ const AddTransactionPage = () => {
     router.push("/");
   };
 
-  const toLocalDateTimeString = (isoString: string): string => {
-    const date = new Date(isoString);
-    const offset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - offset);
-    return localDate.toISOString().slice(0, 16);
-  };
-
   return (
     <div className="min-h-screen bg-[#FDFCFB] dark:bg-slate-950 font-sans pb-32 transition-colors duration-500">
+      {/* Header */}
       <motion.header
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -173,11 +169,9 @@ const AddTransactionPage = () => {
 
         {/* Categories Section */}
         <motion.div variants={fadeInUp} className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              Category
-            </label>
-          </div>
+          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+            Category
+          </label>
 
           <div className="grid grid-cols-4 gap-y-6 gap-x-3">
             {filteredCategories.length > 0 ? (
@@ -221,7 +215,11 @@ const AddTransactionPage = () => {
                       </AnimatePresence>
                     </div>
                     <span
-                      className={`text-[10px] font-bold transition-colors ${isSelected ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-600"}`}
+                      className={`text-[10px] font-bold transition-colors ${
+                        isSelected
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-400 dark:text-slate-600"
+                      }`}
                     >
                       {cat.name}
                     </span>
@@ -236,8 +234,27 @@ const AddTransactionPage = () => {
           </div>
         </motion.div>
 
+        {/* Note Input Section */}
+        <motion.div variants={fadeInUp} className="space-y-3 px-1">
+          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            Add a note (Optional)
+          </label>
+          <div className="relative group">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 group-focus-within:text-[#477A71] transition-colors">
+              <Icons.PencilLine size={18} strokeWidth={2.5} />
+            </div>
+            <input
+              type="text"
+              placeholder="What was this for?..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-800 dark:text-white placeholder:text-slate-200 dark:placeholder:text-slate-800 focus:outline-none focus:border-[#477a71]/20 shadow-sm transition-all"
+            />
+          </div>
+        </motion.div>
+
         {/* Date Display Button */}
-        <motion.div className="px-5 space-y-3">
+        <motion.div variants={fadeInUp} className="px-1">
           <button
             type="button"
             onClick={() => setShowDatePicker(true)}
@@ -256,9 +273,11 @@ const AddTransactionPage = () => {
             </div>
           </button>
         </motion.div>
+
+        {/* Date Picker Modal */}
         <AnimatePresence>
           {showDatePicker && (
-            <div className="fixed inset-0 z-50 flex items-center sm:items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -346,6 +365,7 @@ const AddTransactionPage = () => {
             </div>
           )}
         </AnimatePresence>
+
         {/* Submit Button */}
         <motion.button
           variants={fadeInUp}

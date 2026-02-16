@@ -24,22 +24,18 @@ const Dashboard = () => {
   const { transactions } = useFlowlyContext();
   const [showBalance, setShowBalance] = useState(false);
 
-  // 1. Move useEffect to the top
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const stats = useMemo(() => {
     const nowEth = toEthiopian(new Date());
-
     let allTimeBalance = 0;
     let yearlyIncome = 0;
     let yearlyExpense = 0;
 
     transactions.forEach((t) => {
       const txEth = toEthiopian(t.date);
-
-      // Handle Value Objects (checking if it's a string or an object with .value)
       const type = typeof t.type === "string" ? t.type : (t.type as any).value;
       const dType = t.debtType
         ? typeof t.debtType === "string"
@@ -49,28 +45,18 @@ const Dashboard = () => {
 
       const amount = t.amount;
 
-      // --- 1. ALL-TIME BALANCE (Cash on Hand) ---
       if (type === "income") {
         allTimeBalance += amount;
       } else if (type === "expense") {
         allTimeBalance -= amount;
       } else if (type === "debt") {
-        if (dType === "owed") {
-          // You borrowed money: Cash in pocket increases
-          allTimeBalance += amount;
-        } else if (dType === "owesMe") {
-          // You lent money: Cash in pocket decreases
-          allTimeBalance -= amount;
-        }
+        if (dType === "owed") allTimeBalance += amount;
+        else if (dType === "owesMe") allTimeBalance -= amount;
       }
 
-      // --- 2. YEARLY TOTALS (Current Ethiopian Year) ---
       if (txEth.year === nowEth.year) {
-        if (type === "income") {
-          yearlyIncome += amount;
-        } else if (type === "expense") {
-          yearlyExpense += amount;
-        }
+        if (type === "income") yearlyIncome += amount;
+        else if (type === "expense") yearlyExpense += amount;
       }
     });
 
@@ -81,12 +67,10 @@ const Dashboard = () => {
     };
   }, [transactions]);
 
-  // 3. Define other memos before any returns
   const recentTransactions = useMemo(() => {
     return transactions.slice(0, 4);
   }, [transactions]);
 
-  // 4. NOW handle the loading state
   if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-950">
@@ -97,7 +81,6 @@ const Dashboard = () => {
     );
   }
 
-  // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -135,38 +118,40 @@ const Dashboard = () => {
             </div>
             <button
               onClick={() => setShowBalance(!showBalance)}
-              className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"
+              className="p-2 hover:bg-white/10 rounded-full transition-all"
             >
               {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
-          <motion.h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8">
+          <motion.h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8 tracking-tight">
             {showBalance ? `${stats.balance.toLocaleString()} ETB` : "••••••••"}
           </motion.h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-1 opacity-90">
-                <TrendingUp size={16} className="text-[#F0BB40]" />
-                <span className="text-xs sm:text-sm uppercase tracking-wider">
+            {/* Yearly Income Box - GREEN TINT */}
+            <div className="bg-emerald-500/20 backdrop-blur-md border border-emerald-400/30 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp size={16} className="text-emerald-400" />
+                <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
                   Income
                 </span>
               </div>
-              <p className="text-lg sm:text-xl font-semibold">
+              <p className="text-lg sm:text-xl font-bold text-emerald-50">
                 {showBalance
                   ? `${stats.totalIncome.toLocaleString()} ETB`
                   : "••••"}
               </p>
             </div>
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-1 opacity-90">
-                <TrendingDown size={16} className="text-[#F0BB40]" />
-                <span className="text-xs sm:text-sm uppercase tracking-wider">
+            {/* Yearly Expense Box - RED TINT */}
+            <div className="bg-rose-500/20 backdrop-blur-md border border-rose-400/30 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingDown size={16} className="text-rose-400" />
+                <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
                   Expenses
                 </span>
               </div>
-              <p className="text-lg sm:text-xl font-semibold">
+              <p className="text-lg sm:text-xl font-bold text-rose-50">
                 {showBalance
                   ? `${stats.totalExpenses.toLocaleString()} ETB`
                   : "••••"}
@@ -223,7 +208,7 @@ const Dashboard = () => {
           </div>
         </motion.section>
 
-        {/* Recent Transactions */}
+        {/* Recent Transactions - COLORS ADDED HERE */}
         <motion.section variants={itemVariants} className="px-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
@@ -243,29 +228,53 @@ const Dashboard = () => {
                 No transactions yet
               </p>
             ) : (
-              recentTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex justify-between items-center"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                      <Wallet size={18} className="text-[#477A71]" />
+              recentTransactions.map((tx) => {
+                const type =
+                  typeof tx.type === "string"
+                    ? tx.type
+                    : (tx.type as any).value;
+
+                // Transaction color logic
+                let colorClass = "text-[#477A71]";
+                let iconBg = "bg-emerald-50 dark:bg-emerald-500/10";
+                let Icon = TrendingUp;
+
+                if (type === "expense") {
+                  colorClass = "text-rose-500";
+                  iconBg = "bg-rose-50 dark:bg-rose-500/10";
+                  Icon = TrendingDown;
+                } else if (type === "debt") {
+                  colorClass = "text-amber-500";
+                  iconBg = "bg-amber-50 dark:bg-amber-500/10";
+                  Icon = CreditCard;
+                }
+
+                return (
+                  <div
+                    key={tx.id}
+                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex justify-between items-center shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${iconBg}`}>
+                        <Icon size={18} className={colorClass} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">
+                          {tx.category}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                          {formatEth(tx.date)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">{tx.category}</p>
-                      <p className="text-[10px] text-slate-400">
-                        {formatEth(tx.date)}
-                      </p>
-                    </div>
+                    <p className={`font-black text-sm ${colorClass}`}>
+                      {showBalance
+                        ? `${type === "expense" ? "-" : "+"}${tx.amount.toLocaleString()} ETB`
+                        : "••••••"}
+                    </p>
                   </div>
-                  <p className="font-bold text-slate-800 dark:text-white">
-                    {showBalance
-                      ? `${tx.amount.toLocaleString()} ETB`
-                      : "••••••"}
-                  </p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </motion.section>

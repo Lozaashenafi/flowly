@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Download,
+  Upload, // Added for Import
   Trash2,
   Smartphone,
   CheckCircle2,
@@ -11,16 +12,15 @@ import {
   Moon,
   Sun,
   Monitor,
+  Share,
 } from "lucide-react";
 import { useFlowlyContext } from "../context/FlowlyContext";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useTheme } from "next-themes";
 import logo from "../../../app/logo.png";
 
-// --- ADDED FOR CAPACITOR ---
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Capacitor } from "@capacitor/core";
-// ---------------------------
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -37,42 +37,39 @@ const itemVariants: Variants = {
 };
 
 export default function Settings() {
-  const { transactions, categories, deleteTransaction } = useFlowlyContext();
+  const { transactions, categories, deleteTransaction, addTransaction } =
+    useFlowlyContext();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [modalType, setModalType] = useState<
-    "clear" | "install" | "success" | null
+    "clear" | "install" | "success" | "error" | null
   >(null);
   const [statusMsg, setStatusMsg] = useState("");
 
   useEffect(() => setMounted(true), []);
 
-  // --- ADDED THEME SYNC LOGIC FOR ANDROID STATUS BAR ---
   useEffect(() => {
     const updateNativeStatusBar = async () => {
-      // Check if the app is running on a native device (Android/iOS)
       if (Capacitor.isNativePlatform()) {
         try {
           if (resolvedTheme === "dark") {
-            // Dark Mode: Slate background, White icons
             await StatusBar.setBackgroundColor({ color: "#0f172a" });
             await StatusBar.setStyle({ style: Style.Light });
           } else {
-            // Light Mode: Your Green background, White icons
             await StatusBar.setBackgroundColor({ color: "#f9fafb" });
-            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setStyle({ style: Style.Dark });
           }
         } catch (e) {
           console.error("StatusBar error", e);
         }
       }
     };
-
     updateNativeStatusBar();
-  }, [resolvedTheme]); // This runs every time the theme changes
-  // ----------------------------------------------------
+  }, [resolvedTheme]);
 
+  // --- EXPORT LOGIC ---
   const handleExport = () => {
     const data = {
       transactions,
@@ -86,15 +83,57 @@ export default function Settings() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `flowly_backup_${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    link.download = `flowly_backup_${new Date().toISOString().split("T")[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     setStatusMsg("Data exported successfully!");
     setModalType("success");
+  };
+
+  // --- IMPORT LOGIC ---
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+
+        if (!data.transactions || !Array.isArray(data.transactions)) {
+          throw new Error("Invalid backup file format.");
+        }
+
+        // Logic: Merge imported data.
+        // We loop through imported transactions and add them.
+        let addedCount = 0;
+        for (const tx of data.transactions) {
+          // You might want to check for duplicates here using tx.id or tx.createdAt
+          await addTransaction(tx);
+          addedCount++;
+        }
+
+        setStatusMsg(`Successfully imported ${addedCount} records!`);
+        setModalType("success");
+      } catch (err) {
+        setStatusMsg(
+          "Failed to import. Make sure the file is a valid Flowly backup.",
+        );
+        setModalType("error");
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleClearData = async () => {
@@ -127,11 +166,12 @@ export default function Settings() {
         animate="visible"
         className="px-4 space-y-6 max-w-5xl mx-auto"
       >
+        {/* Profile / Status Section */}
         <motion.section
           variants={itemVariants}
           className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 text-center border-2 border-slate-50 dark:border-slate-800 shadow-sm"
         >
-          <div className="w-20 h-20 mx-auto mb-4 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 mx-auto mb-4 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-lg overflow-hidden">
             <img src={logo.src} alt="Flowly Logo" className="w-24" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-1">
@@ -158,45 +198,67 @@ export default function Settings() {
           </div>
         </motion.section>
 
+        {/* Theme Section */}
         <motion.section variants={itemVariants} className="space-y-3">
           <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Appearance
           </p>
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-2 flex border-2 border-slate-50 dark:border-slate-800 shadow-sm">
-            <button
-              onClick={() => setTheme("light")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold transition-all ${
-                theme === "light"
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
-                  : "text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-              }`}
-            >
-              <Sun size={18} /> Light
-            </button>
-            <button
-              onClick={() => setTheme("dark")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold transition-all ${
-                theme === "dark"
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
-                  : "text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-              }`}
-            >
-              <Moon size={18} /> Dark
-            </button>
-            <button
-              onClick={() => setTheme("system")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold transition-all ${
-                theme === "system"
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
-                  : "text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-              }`}
-            >
-              <Monitor size={18} /> Auto
-            </button>
+            {(["light", "dark", "system"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold transition-all capitalize ${
+                  theme === t
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
+                    : "text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                }`}
+              >
+                {t === "light" && <Sun size={18} />}
+                {t === "dark" && <Moon size={18} />}
+                {t === "system" && <Monitor size={18} />}
+                {t}
+              </button>
+            ))}
           </div>
         </motion.section>
 
+        {/* Actions Section */}
         <motion.section variants={containerVariants} className="space-y-4">
+          <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Data Management
+          </p>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            className="hidden"
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={handleExport}
+              className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 flex flex-col items-center gap-3 border-2 border-slate-50 dark:border-slate-800 shadow-sm"
+            >
+              <div className="w-12 h-12 bg-[#477A71]/10 text-[#477A71] rounded-2xl flex items-center justify-center">
+                <Download size={24} />
+              </div>
+              <p className="font-bold text-sm">Export</p>
+            </button>
+
+            <button
+              onClick={handleImportClick}
+              className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 flex flex-col items-center gap-3 border-2 border-slate-50 dark:border-slate-800 shadow-sm"
+            >
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-2xl flex items-center justify-center">
+                <Upload size={24} />
+              </div>
+              <p className="font-bold text-sm">Import</p>
+            </button>
+          </div>
+
           <button
             onClick={() => setModalType("install")}
             className="w-full bg-white dark:bg-slate-900 rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 dark:border-slate-800"
@@ -208,22 +270,7 @@ export default function Settings() {
               <p className="font-bold">Install App</p>
             </div>
             <div className="bg-[#477A71] text-white p-2 rounded-xl">
-              <PlusIcon size={20} />
-            </div>
-          </button>
-
-          <button
-            onClick={handleExport}
-            className="w-full bg-white dark:bg-slate-900 rounded-3xl p-5 flex items-center justify-between border-2 border-slate-50 dark:border-slate-800"
-          >
-            <div className="flex items-center gap-4 text-slate-900 dark:text-white">
-              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
-                <Download />
-              </div>
-              <p className="font-bold">Export Data</p>
-            </div>
-            <div className="border-2 border-slate-100 dark:border-slate-700 text-slate-400 p-2 rounded-xl">
-              <Download size={20} />
+              <Share size={20} />
             </div>
           </button>
 
@@ -241,8 +288,8 @@ export default function Settings() {
         </motion.section>
 
         <footer className="text-center py-10 opacity-60">
-          <p className="text-xs text-gray-500 dark:text-slate-400">
-            All data is stored locally on your device.
+          <p className="text-xs text-gray-500 dark:text-slate-400 uppercase font-black tracking-tighter">
+            Flowly v1.0.4 Core
           </p>
           <p className="text-[10px] font-medium text-slate-400 mt-2 uppercase tracking-widest">
             Made with ❤️ in Ethiopia
@@ -271,16 +318,14 @@ export default function Settings() {
                   <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <AlertTriangle size={32} />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">
-                    Are you sure?
-                  </h3>
+                  <h3 className="text-xl font-black mb-2">Are you sure?</h3>
                   <p className="text-sm text-slate-500 mb-8">
-                    This action cannot be undone.
+                    This will delete all locally stored records.
                   </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setModalType(null)}
-                      className="flex-1 py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                      className="flex-1 py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-800"
                     >
                       Cancel
                     </button>
@@ -293,43 +338,49 @@ export default function Settings() {
                   </div>
                 </div>
               )}
+
+              {(modalType === "success" || modalType === "error") && (
+                <div className="text-center">
+                  <div
+                    className={`w-16 h-16 ${modalType === "success" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500" : "bg-rose-50 text-rose-500"} rounded-full flex items-center justify-center mx-auto mb-4`}
+                  >
+                    {modalType === "success" ? (
+                      <CheckCircle2 size={32} />
+                    ) : (
+                      <AlertTriangle size={32} />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-black mb-2">
+                    {modalType === "success" ? "Great!" : "Oops!"}
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-8">{statusMsg}</p>
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="w-full py-4 rounded-2xl font-bold bg-slate-900 dark:bg-white dark:text-slate-900 text-white"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+
               {modalType === "install" && (
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Info size={32} />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">
-                    Install App
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+                  <h3 className="text-xl font-black mb-2">Install App</h3>
+                  <p className="text-sm text-slate-500 mb-8">
                     Select{" "}
                     <span className="font-bold text-slate-900 dark:text-white">
                       "Add to Home Screen"
                     </span>{" "}
-                    from your browser menu.
+                    from your browser menu to use Flowly as a native app.
                   </p>
-                  <button
-                    onClick={() => setModalType(null)}
-                    className="w-full py-4 rounded-2xl font-bold bg-slate-900 dark:bg-white dark:text-slate-900 text-white"
-                  >
-                    Got it
-                  </button>
-                </div>
-              )}
-              {modalType === "success" && (
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 size={32} />
-                  </div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">
-                    Success!
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-8">{statusMsg}</p>
                   <button
                     onClick={() => setModalType(null)}
                     className="w-full py-4 rounded-2xl font-bold bg-[#477A71] text-white"
                   >
-                    Close
+                    Got it
                   </button>
                 </div>
               )}
@@ -340,19 +391,3 @@ export default function Settings() {
     </div>
   );
 }
-
-const PlusIcon = ({ size }: { size: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
