@@ -1,5 +1,5 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { FlowlyProvider } from "../src/presentation/context/FlowlyContext";
 import { BottomNav } from "../src/presentation/components/layout/BottomNav";

@@ -98,187 +98,193 @@ const Dashboard = () => {
   return (
     <div className="bg-gray-50 dark:bg-slate-950 min-h-screen pb-24 md:pb-8 transition-colors duration-500">
       <Header />
-      <motion.main
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="px-4 pt-6 pb-12 space-y-8 max-w-5xl mx-auto"
+      <div
+        className={`transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}
       >
-        {/* Main Balance Card */}
-        <motion.section
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-3xl bg-[#477A71] p-5 sm:p-6 text-white shadow-lg"
+        <motion.main
+          initial="hidden"
+          animate={mounted ? "visible" : "hidden"} // Only animate when mounted
+          variants={containerVariants}
+          className="px-4 pt-6 pb-12 space-y-8 max-w-5xl mx-auto"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 opacity-90">
-              <Wallet size={20} className="text-[#F0BB40]" />
-              <span className="text-sm sm:text-base font-medium">
-                Current Balance
-              </span>
-            </div>
-            <button
-              onClick={() => setShowBalance(!showBalance)}
-              className="p-2 hover:bg-white/10 rounded-full transition-all"
-            >
-              {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
-          <motion.h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8 tracking-tight">
-            {showBalance ? `${stats.balance.toLocaleString()} ETB` : "••••••••"}
-          </motion.h2>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Yearly Income Box - GREEN TINT */}
-            <div className="bg-emerald-500/20 backdrop-blur-md border border-emerald-400/30 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp size={16} className="text-emerald-400" />
-                <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
-                  Income
+          {/* Main Balance Card */}
+          <motion.section
+            variants={itemVariants}
+            className="relative overflow-hidden rounded-3xl bg-[#477A71] p-5 sm:p-6 text-white shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 opacity-90">
+                <Wallet size={20} className="text-[#F0BB40]" />
+                <span className="text-sm sm:text-base font-medium">
+                  Current Balance
                 </span>
               </div>
-              <p className="text-lg sm:text-xl font-bold text-emerald-50">
-                {showBalance
-                  ? `${stats.totalIncome.toLocaleString()} ETB`
-                  : "••••"}
-              </p>
-            </div>
-            {/* Yearly Expense Box - RED TINT */}
-            <div className="bg-rose-500/20 backdrop-blur-md border border-rose-400/30 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingDown size={16} className="text-rose-400" />
-                <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
-                  Expenses
-                </span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold text-rose-50">
-                {showBalance
-                  ? `${stats.totalExpenses.toLocaleString()} ETB`
-                  : "••••"}
-              </p>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Quick Actions */}
-        <motion.section variants={itemVariants} className="px-2">
-          <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-4 gap-2 sm:gap-4">
-            {[
-              {
-                label: "Income",
-                icon: TrendingUp,
-                color: "bg-[#477A71]",
-                path: "/add",
-              },
-              {
-                label: "Expense",
-                icon: TrendingDown,
-                color: "bg-[#F0BB40]",
-                path: "/add",
-              },
-              {
-                label: "Debt",
-                icon: CreditCard,
-                color: "bg-[#477A71]",
-                path: "/debt",
-              },
-              {
-                label: "Budget",
-                icon: Target,
-                color: "bg-[#F0BB40]",
-                path: "/budget",
-              },
-            ].map((btn, idx) => (
-              <motion.button
-                key={idx}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push(btn.path)}
-                className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-6 rounded-2xl ${btn.color} shadow-sm`}
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className="p-2 hover:bg-white/10 rounded-full transition-all"
               >
-                <btn.icon className="size-5 sm:size-7 text-white/80" />
-                <span className="text-[10px] sm:text-xs font-bold text-white">
-                  {btn.label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </motion.section>
+                {showBalance ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
 
-        {/* Recent Transactions - COLORS ADDED HERE */}
-        <motion.section variants={itemVariants} className="px-2">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
-              Recent Transactions
+            <motion.h2 className="text-4xl sm:text-5xl font-bold mb-6 sm:mb-8 tracking-tight">
+              {showBalance
+                ? `${stats.balance.toLocaleString()} ETB`
+                : "••••••••"}
+            </motion.h2>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Yearly Income Box - GREEN TINT */}
+              <div className="bg-emerald-500/20 backdrop-blur-md border border-emerald-400/30 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp size={16} className="text-emerald-400" />
+                  <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
+                    Income
+                  </span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-emerald-50">
+                  {showBalance
+                    ? `${stats.totalIncome.toLocaleString()} ETB`
+                    : "••••"}
+                </p>
+              </div>
+              {/* Yearly Expense Box - RED TINT */}
+              <div className="bg-rose-500/20 backdrop-blur-md border border-rose-400/30 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingDown size={16} className="text-rose-400" />
+                  <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80">
+                    Expenses
+                  </span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-rose-50">
+                  {showBalance
+                    ? `${stats.totalExpenses.toLocaleString()} ETB`
+                    : "••••"}
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Quick Actions */}
+          <motion.section variants={itemVariants} className="px-2">
+            <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+              Quick Actions
             </h3>
-            <button
-              onClick={() => router.push("/transactions")}
-              className="text-xs font-bold text-[#477A71]"
-            >
-              View All
-            </button>
-          </div>
+            <div className="grid grid-cols-4 gap-2 sm:gap-4">
+              {[
+                {
+                  label: "Income",
+                  icon: TrendingUp,
+                  color: "bg-[#477A71]",
+                  path: "/add",
+                },
+                {
+                  label: "Expense",
+                  icon: TrendingDown,
+                  color: "bg-[#F0BB40]",
+                  path: "/add",
+                },
+                {
+                  label: "Debt",
+                  icon: CreditCard,
+                  color: "bg-[#477A71]",
+                  path: "/debt",
+                },
+                {
+                  label: "Budget",
+                  icon: Target,
+                  color: "bg-[#F0BB40]",
+                  path: "/budget",
+                },
+              ].map((btn, idx) => (
+                <motion.button
+                  key={idx}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push(btn.path)}
+                  className={`flex flex-col items-center justify-center gap-2 py-4 sm:py-6 rounded-2xl ${btn.color} shadow-sm`}
+                >
+                  <btn.icon className="size-5 sm:size-7 text-white/80" />
+                  <span className="text-[10px] sm:text-xs font-bold text-white">
+                    {btn.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </motion.section>
 
-          <div className="space-y-3">
-            {recentTransactions.length === 0 ? (
-              <p className="text-center text-slate-400 py-10">
-                No transactions yet
-              </p>
-            ) : (
-              recentTransactions.map((tx) => {
-                const type =
-                  typeof tx.type === "string"
-                    ? tx.type
-                    : (tx.type as any).value;
+          {/* Recent Transactions - COLORS ADDED HERE */}
+          <motion.section variants={itemVariants} className="px-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                Recent Transactions
+              </h3>
+              <button
+                onClick={() => router.push("/transactions")}
+                className="text-xs font-bold text-[#477A71]"
+              >
+                View All
+              </button>
+            </div>
 
-                // Transaction color logic
-                let colorClass = "text-[#477A71]";
-                let iconBg = "bg-emerald-50 dark:bg-emerald-500/10";
-                let Icon = TrendingUp;
+            <div className="space-y-3">
+              {recentTransactions.length === 0 ? (
+                <p className="text-center text-slate-400 py-10">
+                  No transactions yet
+                </p>
+              ) : (
+                recentTransactions.map((tx) => {
+                  const type =
+                    typeof tx.type === "string"
+                      ? tx.type
+                      : (tx.type as any).value;
 
-                if (type === "expense") {
-                  colorClass = "text-rose-500";
-                  iconBg = "bg-rose-50 dark:bg-rose-500/10";
-                  Icon = TrendingDown;
-                } else if (type === "debt") {
-                  colorClass = "text-amber-500";
-                  iconBg = "bg-amber-50 dark:bg-amber-500/10";
-                  Icon = CreditCard;
-                }
+                  // Transaction color logic
+                  let colorClass = "text-[#477A71]";
+                  let iconBg = "bg-emerald-50 dark:bg-emerald-500/10";
+                  let Icon = TrendingUp;
 
-                return (
-                  <div
-                    key={tx.id}
-                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex justify-between items-center shadow-sm"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl ${iconBg}`}>
-                        <Icon size={18} className={colorClass} />
+                  if (type === "expense") {
+                    colorClass = "text-rose-500";
+                    iconBg = "bg-rose-50 dark:bg-rose-500/10";
+                    Icon = TrendingDown;
+                  } else if (type === "debt") {
+                    colorClass = "text-amber-500";
+                    iconBg = "bg-amber-50 dark:bg-amber-500/10";
+                    Icon = CreditCard;
+                  }
+
+                  return (
+                    <div
+                      key={tx.id}
+                      className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex justify-between items-center shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl ${iconBg}`}>
+                          <Icon size={18} className={colorClass} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">
+                            {tx.category}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                            {formatEth(tx.date)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 dark:text-white">
-                          {tx.category}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                          {formatEth(tx.date)}
-                        </p>
-                      </div>
+                      <p className={`font-black text-sm ${colorClass}`}>
+                        {showBalance
+                          ? `${type === "expense" ? "-" : "+"}${tx.amount.toLocaleString()} ETB`
+                          : "••••••"}
+                      </p>
                     </div>
-                    <p className={`font-black text-sm ${colorClass}`}>
-                      {showBalance
-                        ? `${type === "expense" ? "-" : "+"}${tx.amount.toLocaleString()} ETB`
-                        : "••••••"}
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </motion.section>
-      </motion.main>
+                  );
+                })
+              )}
+            </div>
+          </motion.section>
+        </motion.main>
+      </div>
     </div>
   );
 };
