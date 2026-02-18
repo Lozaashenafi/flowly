@@ -1,4 +1,4 @@
-package com.flowlyfinance.app;
+package com.flowly.app;
 
 import com.getcapacitor.BridgeActivity;
 

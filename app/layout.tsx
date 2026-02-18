@@ -8,6 +8,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { ThemeProvider } from "../src/presentation/components/theme-provider";
 
 import type { Metadata, Viewport } from "next";
+import { ClientOnly } from "../src/presentation/components/layout/ClientOnly";
 
 export const metadata: Metadata = {
   title: "Flowly - Personal Finance App",
@@ -61,20 +62,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <FlowlyProvider>
-            <PWARegistrar />
-            <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-500">
-              <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <BottomNav />
-            </div>
-          </FlowlyProvider>
-        </ThemeProvider>
+        <ClientOnly>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <FlowlyProvider>
+              <PWARegistrar />
+              <div className="pt-[env(safe-area-inset-top)] flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-500">
+                <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                <BottomNav />
+              </div>
+            </FlowlyProvider>
+          </ThemeProvider>
+        </ClientOnly>
         <Analytics />
         <GoogleAnalytics gaId="G-7TVTE4BS7T" />
       </body>

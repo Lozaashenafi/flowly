@@ -1,17 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your existing setting
-  devIndicators: {
-    buildActivity: false,
-  },
-
-  // REQUIRED FOR MOBILE:
-  output: "export", // This tells Next.js to build a static 'out' folder
+  output: "export",
   images: {
-    unoptimized: true, // Mobile apps don't have a server to resize images
+    unoptimized: true,
   },
-  trailingSlash: true, // Prevents 404 errors on page refreshes in the app
-  assetPrefix: process.env.NODE_ENV === "production" ? "./" : "",
+  trailingSlash: true,
+  // REMOVE assetPrefix: "./"
+  // It conflicts with trailingSlash and breaks CSS on sub-pages
 };
 
 export default nextConfig;

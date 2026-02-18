@@ -1,13 +1,19 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.flowlyfinance.app",
+  appId: "com.flowly.app",
   appName: "flowly",
   webDir: "out",
+  server: {
+    // This allows Next.js routing and CSS paths to work perfectly
+    androidScheme: "https",
+  },
   plugins: {
-    StatusBar: {
-      overlaysWebView: true,
-      style: "LIGHT",
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#ffffff", // Match your app theme
+      showSpinner: false,
+      androidScaleType: "CENTER_CROP",
     },
   },
 };
